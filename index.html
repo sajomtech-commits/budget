@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Budget Manager</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f0f2f5;--bg2:#fff;--bg3:#e8eaed;
+  --text:#1a1a2e;--text2:#6b7280;
+  --border:#e5e7eb;
+  --primary:#4f46e5;--primary-h:#4338ca;
+  --green:#10b981;--red:#ef4444;--yellow:#f59e0b;
+  --shadow:0 1px 3px rgba(0,0,0,.1),0 1px 2px rgba(0,0,0,.06);
+  --shadow-md:0 4px 6px rgba(0,0,0,.07),0 2px 4px rgba(0,0,0,.06);
+  --radius:8px;
+}
+body.dark{
+  --bg:#111827;--bg2:#1f2937;--bg3:#374151;
+  --text:#f9fafb;--text2:#9ca3af;
+  --border:#374151;
+  --shadow:0 1px 3px rgba(0,0,0,.4);
+  --shadow-md:0 4px 6px rgba(0,0,0,.3);
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .2s,color .2s}
+
+/* HEADER */
+.header{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--shadow);position:sticky;top:0;z-index:100}
+.header h1{font-size:1.2rem;font-weight:700;color:var(--primary)}
+.header-actions{display:flex;gap:8px;align-items:center}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:var(--radius);border:none;cursor:pointer;font-size:.875rem;font-weight:500;transition:all .15s}
+.btn-primary{background:var(--primary);color:#fff}.btn-primary:hover{background:var(--primary-h)}
+.btn-ghost{background:var(--bg3);color:var(--text)}.btn-ghost:hover{opacity:.8}
+.btn-sm{padding:4px 10px;font-size:.8rem}
+.btn-icon{padding:7px 10px;border-radius:50%}
+.btn-danger{background:var(--red);color:#fff}.btn-danger:hover{opacity:.85}
+
+/* TABS */
+.tabs-nav{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);padding:0 24px}
+.tab-btn{padding:14px 20px;background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;font-size:.9rem;font-weight:500;color:var(--text2);transition:all .15s}
+.tab-btn.active{color:var(--primary);border-bottom-color:var(--primary)}
+.tab-content{display:none;padding:24px;max-width:1300px;margin:0 auto}
+.tab-content.active{display:block}
+
+/* CARDS */
+.card{background:var(--bg2);border-radius:var(--radius);box-shadow:var(--shadow-md);padding:20px;margin-bottom:20px}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px}
+.card-title{font-size:1rem;font-weight:600}
+
+/* TABLES */
+table{width:100%;border-collapse:collapse}
+th{text-align:left;padding:10px 12px;font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text2);border-bottom:1px solid var(--border);background:var(--bg3)}
+td{padding:9px 12px;border-bottom:1px solid var(--border);font-size:.875rem;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--bg3)}
+tfoot td{font-weight:700;background:var(--bg3);border-top:2px solid var(--border)}
+
+/* INPUTS */
+.input{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:7px 10px;color:var(--text);font-size:.875rem;width:100%;transition:border .15s}
+.input:focus{outline:none;border-color:var(--primary)}
+.input-sm{padding:4px 8px;font-size:.8rem}
+
+/* AMOUNTS */
+.pos{color:var(--green);font-weight:600}
+.neg{color:var(--red);font-weight:600}
+.zero{color:var(--text2)}
+
+/* SUMMARY BAR */
+.summary-bar{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+.sc{flex:1;min-width:130px;background:var(--bg2);border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow);border-left:3px solid var(--primary)}
+.sc.g{border-left-color:var(--green)}.sc.r{border-left-color:var(--red)}.sc.y{border-left-color:var(--yellow)}
+.sc-label{font-size:.72rem;color:var(--text2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em}
+.sc-val{font-size:1.35rem;font-weight:700}
+
+/* SALARY CONFIG */
+.salary-config{display:flex;gap:14px;flex-wrap:wrap;align-items:center;background:var(--bg2);padding:14px 20px;border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:20px}
+.sf{display:flex;align-items:center;gap:8px}
+.sf label{font-weight:500;color:var(--text2);white-space:nowrap;font-size:.875rem}
+.sf input{width:100px}
+
+/* BADGE */
+.badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:.72rem;font-weight:600;cursor:pointer;margin:1px}
+.bg{background:#d1fae5;color:#065f46}.br{background:#fee2e2;color:#991b1b}.bb{background:#dbeafe;color:#1d4ed8}.by{background:#fef3c7;color:#92400e}
+body.dark .bg{background:#064e3b;color:#6ee7b7}
+body.dark .br{background:#7f1d1d;color:#fca5a5}
+body.dark .bb{background:#1e3a5f;color:#93c5fd}
+body.dark .by{background:#78350f;color:#fde68a}
+
+/* PROJECTION TABLE */
+.proj-wrap{overflow-x:auto;border-radius:var(--radius)}
+.proj-table th,.proj-table td{padding:8px 10px;white-space:nowrap}
+.proj-table td input{width:88px}
+.month-cell{font-weight:600;min-width:90px}
+.override-input{border-color:var(--yellow) !important}
+.total-row td{font-weight:700;background:var(--bg3);border-top:2px solid var(--border)}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1000;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--bg2);border-radius:var(--radius);padding:24px;width:90%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.modal-title{font-size:1.05rem;font-weight:700;margin-bottom:16px}
+.form-row{margin-bottom:10px}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+
+/* DEPENSES VIDE */
+.empty-row td{text-align:center;color:var(--text2);padding:24px;font-style:italic}
+
+@media(max-width:600px){
+  .header{padding:10px 14px}
+  .tab-content{padding:14px}
+  .tab-btn{padding:12px 12px;font-size:.82rem}
+  .salary-config{padding:12px 14px}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <h1>💰 Budget Manager</h1>
+  <div class="header-actions">
+    <button class="btn btn-ghost btn-sm" onclick="exportData()">⬇ Export</button>
+    <label class="btn btn-ghost btn-sm" style="cursor:pointer">
+      ⬆ Import
+      <input type="file" accept=".json" style="display:none" onchange="importData(event)">
+    </label>
+    <button class="btn btn-ghost btn-icon" id="darkBtn" onclick="toggleDark()" title="Basculer dark/light">🌙</button>
+  </div>
+</div>
+
+<!-- TABS NAV -->
+<div class="tabs-nav">
+  <button class="tab-btn active" onclick="switchTab('mensuel',this)">📊 Budget mensuel</button>
+  <button class="tab-btn" onclick="switchTab('projection',this)">📈 Projection 12 mois</button>
+</div>
+
+<!-- ====== TAB 1 ====== -->
+<div class="tab-content active" id="tab-mensuel">
+
+  <div class="summary-bar" id="summary1"></div>
+
+  <!-- Charges fixes -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Charges fixes mensuelles</span>
+      <button class="btn btn-primary btn-sm" onclick="addCharge()">+ Ajouter</button>
+    </div>
+    <table>
+      <thead><tr><th>Désignation</th><th>Montant (€)</th><th></th></tr></thead>
+      <tbody id="chargesTbody"></tbody>
+      <tfoot><tr>
+        <td>Total charges fixes</td>
+        <td id="totalChargesTxt"></td>
+        <td></td>
+      </tr></tfoot>
+    </table>
+  </div>
+
+  <!-- Vie courante -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Dépenses — Vie courante</span>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <label style="font-size:.85rem;color:var(--text2)">Budget alloué :</label>
+        <input type="number" class="input" style="width:110px" id="budgetVieInput"
+          min="0" onchange="state.budgetVie=+this.value;save();renderSummary1()">
+        <button class="btn btn-primary btn-sm" onclick="openAddDepense()">+ Dépense</button>
+      </div>
+    </div>
+    <table>
+      <thead><tr><th>Date</th><th>Catégorie</th><th>Note</th><th>Montant (€)</th><th></th></tr></thead>
+      <tbody id="depensesTbody"></tbody>
+      <tfoot><tr>
+        <td colspan="3">Total dépensé ce mois</td>
+        <td id="totalDepTxt"></td>
+        <td></td>
+      </tr></tfoot>
+    </table>
+  </div>
+</div>
+
+<!-- ====== TAB 2 ====== -->
+<div class="tab-content" id="tab-projection">
+
+  <!-- Salary config + actions -->
+  <div class="salary-config">
+    <span style="font-weight:600;font-size:.9rem">Salaires de base :</span>
+    <div class="sf">
+      <label>Mr</label>
+      <input type="number" class="input input-sm" id="salMrInput" min="0"
+        onchange="state.salaireMr=+this.value;save();renderProjection()">
+      <span style="font-size:.75rem;color:var(--text2)">€/mois</span>
+    </div>
+    <div class="sf">
+      <label>Mme</label>
+      <input type="number" class="input input-sm" id="salMmeInput" min="0"
+        onchange="state.salaireMme=+this.value;save();renderProjection()">
+      <span style="font-size:.75rem;color:var(--text2)">€/mois</span>
+    </div>
+    <span style="font-size:.78rem;color:var(--text2)">— modifiables mois par mois ci-dessous</span>
+    <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-ghost btn-sm" onclick="openAddPrime()">+ Prime / Extra</button>
+      <button class="btn btn-ghost btn-sm" onclick="openAddDepPonct()">+ Dépense ponctuelle</button>
+    </div>
+  </div>
+
+  <!-- Projection table -->
+  <div class="card" style="padding:0;overflow:hidden">
+    <div class="proj-wrap">
+      <table class="proj-table">
+        <thead><tr>
+          <th>Mois</th>
+          <th>Salaire Mr</th>
+          <th>Salaire Mme</th>
+          <th>Primes / Extras</th>
+          <th>Total Entrées</th>
+          <th>Charges fixes</th>
+          <th>Dép. ponctuelles</th>
+          <th>Total Sorties</th>
+          <th>Solde</th>
+          <th>Cumulé</th>
+        </tr></thead>
+        <tbody id="projTbody"></tbody>
+        <tfoot id="projTfoot"></tfoot>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: dépense vie courante -->
+<div class="modal-overlay" id="modalDep">
+  <div class="modal">
+    <div class="modal-title">Nouvelle dépense</div>
+    <div class="form-row"><input type="date" class="input" id="depDate"></div>
+    <div class="form-row"><input type="text" class="input" id="depCat" placeholder="Catégorie (ex: Alimentation)"></div>
+    <div class="form-row"><input type="text" class="input" id="depNote" placeholder="Note (optionnel)"></div>
+    <div class="form-row"><input type="number" class="input" id="depMontant" placeholder="Montant (€)" min="0" step="0.01"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modalDep')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveDep()">Ajouter</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: prime -->
+<div class="modal-overlay" id="modalPrime">
+  <div class="modal">
+    <div class="modal-title" id="modalPrimeTitle">Ajouter une prime</div>
+    <div class="form-row">
+      <select class="input" id="primeMois">
+        <option value="0">Janvier</option><option value="1">Février</option>
+        <option value="2">Mars</option><option value="3">Avril</option>
+        <option value="4">Mai</option><option value="5">Juin</option>
+        <option value="6">Juillet</option><option value="7">Août</option>
+        <option value="8">Septembre</option><option value="9">Octobre</option>
+        <option value="10">Novembre</option><option value="11">Décembre</option>
+      </select>
+    </div>
+    <div class="form-row"><input type="text" class="input" id="primeNom" placeholder="Nom (ex: Bonus)"></div>
+    <div class="form-row"><input type="number" class="input" id="primeMontant" placeholder="Montant (€)" min="0"></div>
+    <div class="modal-actions">
+      <button class="btn btn-danger btn-sm" id="btnDelPrime" style="display:none;margin-right:auto" onclick="deletePrime()">Supprimer</button>
+      <button class="btn btn-ghost" onclick="closeModal('modalPrime')">Annuler</button>
+      <button class="btn btn-primary" onclick="savePrime()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: dépense ponctuelle -->
+<div class="modal-overlay" id="modalPonct">
+  <div class="modal">
+    <div class="modal-title" id="modalPonctTitle">Ajouter une dépense ponctuelle</div>
+    <div class="form-row">
+      <select class="input" id="ponctMois">
+        <option value="0">Janvier</option><option value="1">Février</option>
+        <option value="2">Mars</option><option value="3">Avril</option>
+        <option value="4">Mai</option><option value="5">Juin</option>
+        <option value="6">Juillet</option><option value="7">Août</option>
+        <option value="8">Septembre</option><option value="9">Octobre</option>
+        <option value="10">Novembre</option><option value="11">Décembre</option>
+      </select>
+    </div>
+    <div class="form-row"><input type="text" class="input" id="ponctNom" placeholder="Nom (ex: Taxe foncière)"></div>
+    <div class="form-row"><input type="number" class="input" id="ponctMontant" placeholder="Montant (€)" min="0"></div>
+    <div class="modal-actions">
+      <button class="btn btn-danger btn-sm" id="btnDelPonct" style="display:none;margin-right:auto" onclick="deletePonct()">Supprimer</button>
+      <button class="btn btn-ghost" onclick="closeModal('modalPonct')">Annuler</button>
+      <button class="btn btn-primary" onclick="savePonct()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// =====================================================================
+// STATE
+// =====================================================================
+const MONTHS = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+let _uid = 0;
+const uid = () => 'id' + (++_uid) + '_' + Math.random().toString(36).slice(2,6);
+
+function makeDefault() {
+  return {
+    darkMode: false,
+    chargesFixees: [
+      {id:uid(), nom:'Loyer', montant:0},
+      {id:uid(), nom:'EDF / Gaz', montant:0},
+      {id:uid(), nom:'Internet / Téléphone', montant:0},
+      {id:uid(), nom:'Assurances', montant:0},
+    ],
+    budgetVie: 500,
+    depensesVie: [],
+    salaireMr: 2500,
+    salaireMme: 0,
+    salairesOverrides: {},
+    primes: [
+      {id:uid(), mois:2,  nom:'Bonus',           montant:0},
+      {id:uid(), mois:4,  nom:'RTT',              montant:0},
+      {id:uid(), mois:5,  nom:'Intéressement',    montant:0},
+      {id:uid(), mois:7,  nom:'Prime parentale',  montant:0},
+      {id:uid(), mois:10, nom:'13ème mois',       montant:0},
+    ],
+    depensesPonctuelles: [
+      {id:uid(), mois:5, nom:'Collège',        montant:0},
+      {id:uid(), mois:9, nom:'Taxe foncière',  montant:0},
+    ],
+  };
+}
+
+let state = makeDefault();
+
+// =====================================================================
+// PERSISTENCE
+// =====================================================================
+function save() {
+  localStorage.setItem('budget_v1', JSON.stringify(state));
+}
+
+function load() {
+  try {
+    const raw = localStorage.getItem('budget_v1');
+    if (raw) state = Object.assign(makeDefault(), JSON.parse(raw));
+  } catch(e) { /* ignore */ }
+}
+
+function exportData() {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(state, null, 2)], {type:'application/json'}));
+  a.download = 'budget_' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+}
+
+function importData(e) {
+  const f = e.target.files[0];
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = ev => {
+    try {
+      state = JSON.parse(ev.target.result);
+      save(); renderAll();
+    } catch { alert('Fichier invalide.'); }
+  };
+  r.readAsText(f);
+  e.target.value = '';
+}
+
+// =====================================================================
+// UTILS
+// =====================================================================
+function fmt(n) {
+  return new Intl.NumberFormat('fr-FR', {style:'currency', currency:'EUR'}).format(n || 0);
+}
+function cls(n) { return n > 0 ? 'pos' : n < 0 ? 'neg' : 'zero'; }
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function totalChargesFixees() {
+  return state.chargesFixees.reduce((s,c) => s + (+c.montant||0), 0);
+}
+
+// =====================================================================
+// DARK MODE
+// =====================================================================
+function toggleDark() {
+  state.darkMode = !state.darkMode;
+  applyDark(); save();
+}
+function applyDark() {
+  document.body.classList.toggle('dark', !!state.darkMode);
+  document.getElementById('darkBtn').textContent = state.darkMode ? '☀️' : '🌙';
+}
+
+// =====================================================================
+// TABS
+// =====================================================================
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  btn.classList.add('active');
+}
+
+// =====================================================================
+// TAB 1 — CHARGES FIXES
+// =====================================================================
+function renderCharges() {
+  const tbody = document.getElementById('chargesTbody');
+  tbody.innerHTML = state.chargesFixees.map(c => `
+    <tr>
+      <td><input class="input input-sm" value="${esc(c.nom)}"
+        onchange="updateCharge('${c.id}','nom',this.value)"></td>
+      <td><input class="input input-sm" type="number" value="${c.montant||''}" min="0"
+        onchange="updateCharge('${c.id}','montant',+this.value)"></td>
+      <td><button class="btn btn-ghost btn-sm" onclick="removeCharge('${c.id}')">✕</button></td>
+    </tr>`).join('');
+  document.getElementById('totalChargesTxt').textContent = fmt(totalChargesFixees());
+}
+
+function addCharge() {
+  state.chargesFixees.push({id:uid(), nom:'Nouvelle charge', montant:0});
+  save(); renderCharges(); renderSummary1(); renderProjection();
+}
+
+function removeCharge(id) {
+  state.chargesFixees = state.chargesFixees.filter(c => c.id !== id);
+  save(); renderCharges(); renderSummary1(); renderProjection();
+}
+
+function updateCharge(id, field, val) {
+  const c = state.chargesFixees.find(c => c.id === id);
+  if (c) c[field] = val;
+  save();
+  document.getElementById('totalChargesTxt').textContent = fmt(totalChargesFixees());
+  renderSummary1(); renderProjection();
+}
+
+// =====================================================================
+// TAB 1 — DÉPENSES VIE COURANTE
+// =====================================================================
+function renderDepenses() {
+  document.getElementById('budgetVieInput').value = state.budgetVie;
+  const sorted = [...state.depensesVie].sort((a,b) => (b.date||'') > (a.date||'') ? 1 : -1);
+  const tbody = document.getElementById('depensesTbody');
+  tbody.innerHTML = sorted.length ? sorted.map(d => `
+    <tr>
+      <td>${d.date||'—'}</td>
+      <td><span class="badge bb">${esc(d.categorie||'Autre')}</span></td>
+      <td style="color:var(--text2)">${esc(d.note||'')}</td>
+      <td class="neg">${fmt(d.montant)}</td>
+      <td><button class="btn btn-ghost btn-sm" onclick="removeDep('${d.id}')">✕</button></td>
+    </tr>`).join('') :
+    '<tr class="empty-row"><td colspan="5">Aucune dépense enregistrée ce mois</td></tr>';
+  const total = state.depensesVie.reduce((s,d) => s + (+d.montant||0), 0);
+  document.getElementById('totalDepTxt').textContent = fmt(total);
+  renderSummary1();
+}
+
+function removeDep(id) {
+  state.depensesVie = state.depensesVie.filter(d => d.id !== id);
+  save(); renderDepenses();
+}
+
+function openAddDepense() {
+  document.getElementById('depDate').value = new Date().toISOString().slice(0,10);
+  document.getElementById('depCat').value = '';
+  document.getElementById('depNote').value = '';
+  document.getElementById('depMontant').value = '';
+  openModal('modalDep');
+}
+
+function saveDep() {
+  const m = +document.getElementById('depMontant').value;
+  if (!m) { alert('Montant requis'); return; }
+  state.depensesVie.push({
+    id: uid(),
+    date: document.getElementById('depDate').value,
+    categorie: document.getElementById('depCat').value || 'Autre',
+    note: document.getElementById('depNote').value,
+    montant: m,
+  });
+  save(); renderDepenses(); closeModal('modalDep');
+}
+
+// =====================================================================
+// TAB 1 — SUMMARY BAR
+// =====================================================================
+function renderSummary1() {
+  const charges = totalChargesFixees();
+  const depTotal = state.depensesVie.reduce((s,d) => s + (+d.montant||0), 0);
+  const entrees = (state.salaireMr||0) + (state.salaireMme||0);
+  const resteVie = (state.budgetVie||0) - depTotal;
+  const solde = entrees - charges - depTotal;
+  document.getElementById('summary1').innerHTML = `
+    <div class="sc"><div class="sc-label">Entrées (salaires)</div><div class="sc-val pos">${fmt(entrees)}</div></div>
+    <div class="sc r"><div class="sc-label">Charges fixes</div><div class="sc-val neg">${fmt(charges)}</div></div>
+    <div class="sc y"><div class="sc-label">Budget vie courante</div><div class="sc-val">${fmt(state.budgetVie)}</div></div>
+    <div class="sc ${resteVie>=0?'g':'r'}"><div class="sc-label">Reste vie courante</div><div class="sc-val ${cls(resteVie)}">${fmt(resteVie)}</div></div>
+    <div class="sc ${solde>=0?'g':'r'}"><div class="sc-label">Solde mensuel estimé</div><div class="sc-val ${cls(solde)}">${fmt(solde)}</div></div>`;
+}
+
+// =====================================================================
+// TAB 2 — PROJECTION
+// =====================================================================
+function renderProjection() {
+  document.getElementById('salMrInput').value = state.salaireMr;
+  document.getElementById('salMmeInput').value = state.salaireMme;
+
+  const charges = totalChargesFixees();
+  let cumule = 0;
+  let totMr=0, totMme=0, totPrimes=0, totEntrees=0;
+  let totCharges=0, totPonct=0, totSorties=0, totSolde=0;
+
+  const rows = MONTHS.map((nom, i) => {
+    const ov = state.salairesOverrides[i] || {};
+    const mr  = ov.mr  !== undefined ? ov.mr  : state.salaireMr;
+    const mme = ov.mme !== undefined ? ov.mme : state.salaireMme;
+    const primesM = state.primes.filter(p => p.mois == i);
+    const ponctM  = state.depensesPonctuelles.filter(d => d.mois == i);
+    const primesTotal = primesM.reduce((s,p) => s+(+p.montant||0), 0);
+    const ponctTotal  = ponctM.reduce((s,d) => s+(+d.montant||0), 0);
+    const entrees = mr + mme + primesTotal;
+    const sorties = charges + ponctTotal;
+    const solde = entrees - sorties;
+    cumule += solde;
+
+    totMr+=mr; totMme+=mme; totPrimes+=primesTotal; totEntrees+=entrees;
+    totCharges+=charges; totPonct+=ponctTotal; totSorties+=sorties; totSolde+=solde;
+
+    const primesBadges = primesM.length
+      ? primesM.map(p => `<span class="badge bg" onclick="editPrime('${p.id}')" title="Cliquer pour modifier">${esc(p.nom)}: ${fmt(p.montant)}</span>`).join('')
+      : '<span style="color:var(--text2);font-size:.78rem">—</span>';
+
+    const ponctBadges = ponctM.length
+      ? ponctM.map(d => `<span class="badge br" onclick="editPonct('${d.id}')" title="Cliquer pour modifier">${esc(d.nom)}: ${fmt(d.montant)}</span>`).join('')
+      : '<span style="color:var(--text2);font-size:.78rem">—</span>';
+
+    const mrOv  = ov.mr  !== undefined;
+    const mmeOv = ov.mme !== undefined;
+
+    return `<tr>
+      <td class="month-cell">${nom}</td>
+      <td>
+        <input type="number" class="input input-sm${mrOv?' override-input':''}" value="${mr}" min="0" style="width:88px"
+          onchange="setSalOv(${i},'mr',+this.value)">
+        ${mrOv?`<button class="btn btn-ghost btn-sm" style="padding:1px 5px;font-size:.7rem;margin-left:2px" onclick="clearSalOv(${i},'mr')" title="Réinitialiser">↺</button>`:''}
+      </td>
+      <td>
+        <input type="number" class="input input-sm${mmeOv?' override-input':''}" value="${mme}" min="0" style="width:88px"
+          onchange="setSalOv(${i},'mme',+this.value)">
+        ${mmeOv?`<button class="btn btn-ghost btn-sm" style="padding:1px 5px;font-size:.7rem;margin-left:2px" onclick="clearSalOv(${i},'mme')" title="Réinitialiser">↺</button>`:''}
+      </td>
+      <td>${primesBadges}</td>
+      <td class="pos">${fmt(entrees)}</td>
+      <td class="neg">${fmt(charges)}</td>
+      <td>${ponctBadges}</td>
+      <td class="neg">${fmt(sorties)}</td>
+      <td class="${cls(solde)}">${fmt(solde)}</td>
+      <td class="${cls(cumule)}">${fmt(cumule)}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('projTbody').innerHTML = rows;
+  document.getElementById('projTfoot').innerHTML = `
+    <tr class="total-row">
+      <td>Total annuel</td>
+      <td>${fmt(totMr)}</td><td>${fmt(totMme)}</td>
+      <td>${fmt(totPrimes)}</td>
+      <td class="pos">${fmt(totEntrees)}</td>
+      <td class="neg">${fmt(totCharges)}</td>
+      <td class="neg">${fmt(totPonct)}</td>
+      <td class="neg">${fmt(totSorties)}</td>
+      <td class="${cls(totSolde)}">${fmt(totSolde)}</td>
+      <td>—</td>
+    </tr>`;
+}
+
+function setSalOv(mois, who, val) {
+  if (!state.salairesOverrides[mois]) state.salairesOverrides[mois] = {};
+  state.salairesOverrides[mois][who] = val;
+  save(); renderProjection();
+}
+
+function clearSalOv(mois, who) {
+  if (state.salairesOverrides[mois]) {
+    delete state.salairesOverrides[mois][who];
+    if (!Object.keys(state.salairesOverrides[mois]).length) delete state.salairesOverrides[mois];
+  }
+  save(); renderProjection();
+}
+
+// =====================================================================
+// PRIMES
+// =====================================================================
+let _primeId = null;
+
+function openAddPrime() {
+  _primeId = null;
+  document.getElementById('modalPrimeTitle').textContent = 'Ajouter une prime / extra';
+  document.getElementById('primeMois').value = 0;
+  document.getElementById('primeNom').value = '';
+  document.getElementById('primeMontant').value = '';
+  document.getElementById('btnDelPrime').style.display = 'none';
+  openModal('modalPrime');
+}
+
+function editPrime(id) {
+  _primeId = id;
+  const p = state.primes.find(p => p.id === id);
+  if (!p) return;
+  document.getElementById('modalPrimeTitle').textContent = 'Modifier la prime';
+  document.getElementById('primeMois').value = p.mois;
+  document.getElementById('primeNom').value = p.nom;
+  document.getElementById('primeMontant').value = p.montant;
+  document.getElementById('btnDelPrime').style.display = '';
+  openModal('modalPrime');
+}
+
+function savePrime() {
+  const mois = +document.getElementById('primeMois').value;
+  const nom  = document.getElementById('primeNom').value || 'Prime';
+  const montant = +document.getElementById('primeMontant').value || 0;
+  if (_primeId) {
+    const p = state.primes.find(p => p.id === _primeId);
+    if (p) { p.mois = mois; p.nom = nom; p.montant = montant; }
+  } else {
+    state.primes.push({id:uid(), mois, nom, montant});
+  }
+  save(); renderProjection(); closeModal('modalPrime');
+}
+
+function deletePrime() {
+  if (!_primeId) return;
+  state.primes = state.primes.filter(p => p.id !== _primeId);
+  save(); renderProjection(); closeModal('modalPrime');
+}
+
+// =====================================================================
+// DÉPENSES PONCTUELLES
+// =====================================================================
+let _ponctId = null;
+
+function openAddDepPonct() {
+  _ponctId = null;
+  document.getElementById('modalPonctTitle').textContent = 'Ajouter une dépense ponctuelle';
+  document.getElementById('ponctMois').value = 0;
+  document.getElementById('ponctNom').value = '';
+  document.getElementById('ponctMontant').value = '';
+  document.getElementById('btnDelPonct').style.display = 'none';
+  openModal('modalPonct');
+}
+
+function editPonct(id) {
+  _ponctId = id;
+  const d = state.depensesPonctuelles.find(d => d.id === id);
+  if (!d) return;
+  document.getElementById('modalPonctTitle').textContent = 'Modifier la dépense';
+  document.getElementById('ponctMois').value = d.mois;
+  document.getElementById('ponctNom').value = d.nom;
+  document.getElementById('ponctMontant').value = d.montant;
+  document.getElementById('btnDelPonct').style.display = '';
+  openModal('modalPonct');
+}
+
+function savePonct() {
+  const mois = +document.getElementById('ponctMois').value;
+  const nom  = document.getElementById('ponctNom').value || 'Dépense';
+  const montant = +document.getElementById('ponctMontant').value || 0;
+  if (_ponctId) {
+    const d = state.depensesPonctuelles.find(d => d.id === _ponctId);
+    if (d) { d.mois = mois; d.nom = nom; d.montant = montant; }
+  } else {
+    state.depensesPonctuelles.push({id:uid(), mois, nom, montant});
+  }
+  save(); renderProjection(); closeModal('modalPonct');
+}
+
+function deletePonct() {
+  if (!_ponctId) return;
+  state.depensesPonctuelles = state.depensesPonctuelles.filter(d => d.id !== _ponctId);
+  save(); renderProjection(); closeModal('modalPonct');
+}
+
+// =====================================================================
+// MODALS
+// =====================================================================
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+document.querySelectorAll('.modal-overlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
+});
+
+// =====================================================================
+// RENDER ALL + INIT
+// =====================================================================
+function renderAll() {
+  applyDark();
+  renderCharges();
+  renderDepenses();
+  renderSummary1();
+  renderProjection();
+}
+
+load();
+renderAll();
+</script>
+</body>
+</html>
