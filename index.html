@@ -218,7 +218,8 @@ body.dark .by{background:#78350f;color:#fde68a}
           <th>Primes / Extras</th>
           <th>Total Entrées</th>
           <th>Charges fixes</th>
-          <th>Dép. ponctuelles</th>
+          <th>Dépenses courantes</th>
+          <th>Dép. exceptionnelles</th>
           <th>Total Sorties</th>
           <th>Solde</th>
           <th>Cumulé</th>
@@ -510,7 +511,7 @@ function renderProjection() {
   const charges = totalChargesFixees();
   let cumule = 0;
   let totMr=0, totMme=0, totPrimes=0, totEntrees=0;
-  let totCharges=0, totPonct=0, totSorties=0, totSolde=0;
+  let totCharges=0, totBudgetVie=0, totPonct=0, totSorties=0, totSolde=0;
 
   const rows = MONTHS.map((nom, i) => {
     const ov = state.salairesOverrides[i] || {};
@@ -520,13 +521,14 @@ function renderProjection() {
     const ponctM  = state.depensesPonctuelles.filter(d => d.mois == i);
     const primesTotal = primesM.reduce((s,p) => s+(+p.montant||0), 0);
     const ponctTotal  = ponctM.reduce((s,d) => s+(+d.montant||0), 0);
+    const budgetVie   = state.budgetVie || 0;
     const entrees = mr + mme + primesTotal;
-    const sorties = charges + ponctTotal;
+    const sorties = charges + budgetVie + ponctTotal;
     const solde = entrees - sorties;
     cumule += solde;
 
     totMr+=mr; totMme+=mme; totPrimes+=primesTotal; totEntrees+=entrees;
-    totCharges+=charges; totPonct+=ponctTotal; totSorties+=sorties; totSolde+=solde;
+    totCharges+=charges; totBudgetVie+=budgetVie; totPonct+=ponctTotal; totSorties+=sorties; totSolde+=solde;
 
     const primesBadges = primesM.length
       ? primesM.map(p => `<span class="badge bg" onclick="editPrime('${p.id}')" title="Cliquer pour modifier">${esc(p.nom)}: ${fmt(p.montant)}</span>`).join('')
@@ -554,6 +556,7 @@ function renderProjection() {
       <td>${primesBadges}</td>
       <td class="pos">${fmt(entrees)}</td>
       <td class="neg">${fmt(charges)}</td>
+      <td class="neg">${fmt(budgetVie)}</td>
       <td>${ponctBadges}</td>
       <td class="neg">${fmt(sorties)}</td>
       <td class="${cls(solde)}">${fmt(solde)}</td>
@@ -569,6 +572,7 @@ function renderProjection() {
       <td>${fmt(totPrimes)}</td>
       <td class="pos">${fmt(totEntrees)}</td>
       <td class="neg">${fmt(totCharges)}</td>
+      <td class="neg">${fmt(totBudgetVie)}</td>
       <td class="neg">${fmt(totPonct)}</td>
       <td class="neg">${fmt(totSorties)}</td>
       <td class="${cls(totSolde)}">${fmt(totSolde)}</td>
