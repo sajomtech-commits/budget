@@ -313,21 +313,17 @@ body.dark .by{background:#78350f;color:#fde68a}
 <div class="config-screen" id="configScreen">
   <div class="config-box">
     <div class="config-title">🔗 Connexion GitHub</div>
-    <div class="config-subtitle">
-      Tes données seront sauvegardées dans <code>budget-data.json</code> dans ton repo GitHub.<br>
-      Crée un <strong>Personal Access Token</strong> avec la permission <code>repo</code> sur <a href="https://github.com/settings/tokens" target="_blank" rel="noopener">github.com/settings/tokens</a>.
-    </div>
+    <div class="config-subtitle" id="cfgSubtitle"></div>
     <div class="form-row">
-      <label class="config-label">Personal Access Token (PAT)</label>
+      <label class="config-label">Personal Access Token (PAT)
+        <a href="https://github.com/settings/tokens/new?scopes=repo&description=BudgetManager" target="_blank" rel="noopener"
+           style="font-weight:400;margin-left:6px;color:var(--primary);font-size:.75rem">→ Créer un token</a>
+      </label>
       <input type="password" class="input" id="cfgToken" placeholder="ghp_xxxxxxxxxxxx" autocomplete="off">
     </div>
-    <div class="form-row">
-      <label class="config-label">Nom du repo</label>
-      <input type="text" class="input" id="cfgRepo" placeholder="mon-budget">
-    </div>
-    <div class="form-row">
-      <label class="config-label">Branche</label>
-      <input type="text" class="input" id="cfgBranch" placeholder="main" value="main">
+    <div class="form-row" id="cfgRepoRow" style="display:none">
+      <label class="config-label">Repo GitHub (owner/nom)</label>
+      <input type="text" class="input" id="cfgRepo" placeholder="ex: jean/mon-budget">
     </div>
     <div id="cfgError" style="color:var(--red);font-size:.85rem;margin:8px 0;display:none;line-height:1.5"></div>
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
@@ -490,14 +486,42 @@ async function loadFromGitHub() {
 // =====================================================================
 // CONFIG SCREEN
 // =====================================================================
+
+// Détecte owner/repo depuis l'URL GitHub Pages (https://{owner}.github.io/{repo}/)
+function detectFromUrl() {
+  const m = window.location.hostname.match(/^([^.]+)\.github\.io$/);
+  if (m) {
+    const owner = m[1];
+    const repo  = window.location.pathname.split('/').filter(Boolean)[0] || '';
+    if (repo) return { owner, repo, branch: 'main' };
+  }
+  return null;
+}
+
+let _autoRepo = detectFromUrl(); // non-null = on est sur GitHub Pages
+
 function showConfigScreen() {
-  document.getElementById('configScreen').classList.add('open');
+  const screen = document.getElementById('configScreen');
+  screen.classList.add('open');
   document.getElementById('cfgCancelBtn').style.display = ghConfig ? '' : 'none';
   document.getElementById('cfgError').style.display = 'none';
-  if (ghConfig) {
-    document.getElementById('cfgToken').value  = ghConfig.token  || '';
-    document.getElementById('cfgRepo').value   = ghConfig.repo   || '';
-    document.getElementById('cfgBranch').value = ghConfig.branch || 'main';
+
+  // Pré-remplir le token si déjà configuré
+  document.getElementById('cfgToken').value = ghConfig ? ghConfig.token : '';
+
+  // Afficher/masquer le champ repo selon le contexte
+  const repoRow = document.getElementById('cfgRepoRow');
+  if (_autoRepo) {
+    repoRow.style.display = 'none';
+    document.getElementById('cfgSubtitle').innerHTML =
+      `Tes données seront sauvegardées dans <strong>${_autoRepo.owner}/${_autoRepo.repo}</strong> (branche <code>${_autoRepo.branch}</code>).<br>
+       Colle ton <strong>Personal Access Token</strong> ci-dessous.`;
+  } else {
+    repoRow.style.display = '';
+    document.getElementById('cfgRepo').value = ghConfig ? `${ghConfig.owner}/${ghConfig.repo}` : '';
+    document.getElementById('cfgSubtitle').innerHTML =
+      `Tes données seront sauvegardées dans un fichier <code>budget-data.json</code> dans ton repo GitHub.<br>
+       Colle ton <strong>Personal Access Token</strong> (permission <code>repo</code>) et indique le repo.`;
   }
 }
 
@@ -506,32 +530,41 @@ function hideConfigScreen() {
 }
 
 async function connectGitHub() {
-  const token  = document.getElementById('cfgToken').value.trim();
-  const repo   = document.getElementById('cfgRepo').value.trim();
-  const branch = document.getElementById('cfgBranch').value.trim() || 'main';
-  const errEl  = document.getElementById('cfgError');
-  const btn    = document.getElementById('cfgConnectBtn');
+  const token = document.getElementById('cfgToken').value.trim();
+  const errEl = document.getElementById('cfgError');
+  const btn   = document.getElementById('cfgConnectBtn');
   errEl.style.display = 'none';
 
-  if (!token || !repo) {
-    errEl.textContent = 'Token et nom du repo requis.';
-    errEl.style.display = '';
-    return;
-  }
+  if (!token) { errEl.textContent = 'Token requis.'; errEl.style.display = ''; return; }
 
-  btn.disabled = true;
-  btn.textContent = 'Connexion…';
+  btn.disabled = true; btn.textContent = 'Connexion…';
   try {
+    // Résoudre le owner depuis /user
     const userRes = await fetch('https://api.github.com/user', {
       headers: { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json' },
     });
-    if (!userRes.ok) throw new Error('Token invalide (HTTP ' + userRes.status + ')');
-    const { login: owner } = await userRes.json();
+    if (!userRes.ok) throw new Error(`Token invalide (HTTP ${userRes.status})`);
+    const { login: apiOwner } = await userRes.json();
 
+    let owner, repo, branch;
+    if (_autoRepo) {
+      // GitHub Pages : owner/repo/branch auto-détectés, mais on vérifie que le token
+      // appartient au bon compte (ou qu'il a accès au repo)
+      owner  = _autoRepo.owner;
+      repo   = _autoRepo.repo;
+      branch = _autoRepo.branch;
+    } else {
+      const raw = document.getElementById('cfgRepo').value.trim();
+      if (!raw.includes('/')) throw new Error('Format requis : owner/repo (ex: jean/mon-budget)');
+      [owner, repo] = raw.split('/');
+      branch = 'main';
+    }
+
+    // Vérifier l'accès au repo
     const repoRes = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
       headers: { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json' },
     });
-    if (!repoRes.ok) throw new Error(`Repo "${owner}/${repo}" introuvable ou inaccessible (HTTP ${repoRes.status})`);
+    if (!repoRes.ok) throw new Error(`Repo "${owner}/${repo}" inaccessible (HTTP ${repoRes.status})`);
 
     persistGhConfig({ token, owner, repo, branch });
     hideConfigScreen();
@@ -541,8 +574,7 @@ async function connectGitHub() {
     errEl.innerHTML = '❌ ' + e.message;
     errEl.style.display = '';
   } finally {
-    btn.disabled = false;
-    btn.textContent = 'Se connecter';
+    btn.disabled = false; btn.textContent = 'Se connecter';
   }
 }
 
