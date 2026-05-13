@@ -424,17 +424,43 @@ async function _doSave() {
     const content = btoa(unescape(encodeURIComponent(json)));
     const body    = { message: 'Budget update', content, branch: ghConfig.branch };
     if (ghSha) body.sha = ghSha;
-    const res = await fetch(
+
+    let res = await fetch(
       `https://api.github.com/repos/${ghConfig.owner}/${ghConfig.repo}/contents/budget-data.json`,
       { method: 'PUT', headers: ghHeaders(), body: JSON.stringify(body) }
     );
-    if (!res.ok) throw new Error('HTTP ' + res.status);
+
+    // 422 = SHA manquant ou périmé → on refetch le SHA et on réessaie une fois
+    if (res.status === 422) {
+      await _refreshSha();
+      if (ghSha) body.sha = ghSha;
+      res = await fetch(
+        `https://api.github.com/repos/${ghConfig.owner}/${ghConfig.repo}/contents/budget-data.json`,
+        { method: 'PUT', headers: ghHeaders(), body: JSON.stringify(body) }
+      );
+    }
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(`HTTP ${res.status}${err.message ? ' – ' + err.message : ''}`);
+    }
     const data = await res.json();
     ghSha = data.content.sha;
     setSyncStatus('ok', '✅ Sauvegardé');
   } catch(e) {
-    setSyncStatus('err', '❌ Erreur sync &mdash; <a href="#" onclick="save();return false" style="color:var(--red)">Réessayer</a>');
+    setSyncStatus('err', `❌ ${e.message} &mdash; <a href="#" onclick="_doSave();return false" style="color:var(--red)">Réessayer</a>`);
   }
+}
+
+async function _refreshSha() {
+  try {
+    const res = await fetch(
+      `https://api.github.com/repos/${ghConfig.owner}/${ghConfig.repo}/contents/budget-data.json?ref=${ghConfig.branch}`,
+      { headers: ghHeaders() }
+    );
+    if (res.ok) { const d = await res.json(); ghSha = d.sha; }
+    else if (res.status === 404) { ghSha = null; }
+  } catch(e) { /* ignore, on réessaiera avec le SHA courant */ }
 }
 
 async function loadFromGitHub() {
