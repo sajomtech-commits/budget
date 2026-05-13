@@ -548,23 +548,21 @@ async function connectGitHub() {
 
     let owner, repo, branch;
     if (_autoRepo) {
-      // GitHub Pages : owner/repo/branch auto-détectés, mais on vérifie que le token
-      // appartient au bon compte (ou qu'il a accès au repo)
       owner  = _autoRepo.owner;
       repo   = _autoRepo.repo;
-      branch = _autoRepo.branch;
     } else {
       const raw = document.getElementById('cfgRepo').value.trim();
       if (!raw.includes('/')) throw new Error('Format requis : owner/repo (ex: jean/mon-budget)');
       [owner, repo] = raw.split('/');
-      branch = 'main';
     }
 
-    // Vérifier l'accès au repo
+    // Vérifier l'accès au repo et récupérer la branche par défaut
     const repoRes = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
       headers: { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json' },
     });
     if (!repoRes.ok) throw new Error(`Repo "${owner}/${repo}" inaccessible (HTTP ${repoRes.status})`);
+    const repoData = await repoRes.json();
+    branch = repoData.default_branch;
 
     persistGhConfig({ token, owner, repo, branch });
     hideConfigScreen();
