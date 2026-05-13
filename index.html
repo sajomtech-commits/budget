@@ -108,6 +108,19 @@ body.dark .by{background:#78350f;color:#fde68a}
 /* DEPENSES VIDE */
 .empty-row td{text-align:center;color:var(--text2);padding:24px;font-style:italic}
 
+/* CONFIG SCREEN */
+.config-screen{display:none;position:fixed;inset:0;background:var(--bg);z-index:2000;align-items:center;justify-content:center}
+.config-screen.open{display:flex}
+.config-box{background:var(--bg2);border-radius:var(--radius);padding:32px;width:90%;max-width:440px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.config-title{font-size:1.2rem;font-weight:700;margin-bottom:6px;color:var(--primary)}
+.config-subtitle{font-size:.84rem;color:var(--text2);margin-bottom:22px;line-height:1.5}
+.config-label{font-size:.8rem;font-weight:600;color:var(--text2);margin-bottom:4px;display:block}
+/* SYNC INDICATOR */
+#syncStatus{font-size:.8rem;font-weight:500;white-space:nowrap}
+#syncStatus.ok{color:var(--green)}
+#syncStatus.err{color:var(--red)}
+#syncStatus.pending{color:var(--text2)}
+
 @media(max-width:600px){
   .header{padding:10px 14px}
   .tab-content{padding:14px}
@@ -128,6 +141,8 @@ body.dark .by{background:#78350f;color:#fde68a}
       <input type="file" accept=".json" style="display:none" onchange="importData(event)">
     </label>
     <button class="btn btn-ghost btn-icon" id="darkBtn" onclick="toggleDark()" title="Basculer dark/light">🌙</button>
+    <span id="syncStatus"></span>
+    <button class="btn btn-ghost btn-sm" onclick="showConfigScreen()" title="Configuration GitHub">⚙ Config</button>
   </div>
 </div>
 
@@ -294,6 +309,34 @@ body.dark .by{background:#78350f;color:#fde68a}
   </div>
 </div>
 
+<!-- CONFIG SCREEN -->
+<div class="config-screen" id="configScreen">
+  <div class="config-box">
+    <div class="config-title">🔗 Connexion GitHub</div>
+    <div class="config-subtitle">
+      Tes données seront sauvegardées dans <code>budget-data.json</code> dans ton repo GitHub.<br>
+      Crée un <strong>Personal Access Token</strong> avec la permission <code>repo</code> sur <a href="https://github.com/settings/tokens" target="_blank" rel="noopener">github.com/settings/tokens</a>.
+    </div>
+    <div class="form-row">
+      <label class="config-label">Personal Access Token (PAT)</label>
+      <input type="password" class="input" id="cfgToken" placeholder="ghp_xxxxxxxxxxxx" autocomplete="off">
+    </div>
+    <div class="form-row">
+      <label class="config-label">Nom du repo</label>
+      <input type="text" class="input" id="cfgRepo" placeholder="mon-budget">
+    </div>
+    <div class="form-row">
+      <label class="config-label">Branche</label>
+      <input type="text" class="input" id="cfgBranch" placeholder="main" value="main">
+    </div>
+    <div id="cfgError" style="color:var(--red);font-size:.85rem;margin:8px 0;display:none;line-height:1.5"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+      <button class="btn btn-ghost" id="cfgCancelBtn" style="display:none" onclick="hideConfigScreen()">Annuler</button>
+      <button class="btn btn-primary" id="cfgConnectBtn" onclick="connectGitHub()">Se connecter</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // =====================================================================
 // STATE
@@ -333,17 +376,148 @@ function makeDefault() {
 let state = makeDefault();
 
 // =====================================================================
-// PERSISTENCE
+// GITHUB CONFIG & PERSISTENCE
 // =====================================================================
-function save() {
-  localStorage.setItem('budget_v1', JSON.stringify(state));
+let ghConfig = null;  // {token, owner, repo, branch}
+let ghSha    = null;  // SHA du fichier budget-data.json actuel
+let _saveTimer = null;
+
+function loadGhConfig() {
+  try {
+    const raw = localStorage.getItem('budget_gh_config');
+    if (raw) ghConfig = JSON.parse(raw);
+  } catch(e) {}
 }
 
-function load() {
+function persistGhConfig(cfg) {
+  ghConfig = cfg;
+  localStorage.setItem('budget_gh_config', JSON.stringify(cfg));
+}
+
+function ghHeaders() {
+  return {
+    'Authorization': 'token ' + ghConfig.token,
+    'Accept': 'application/vnd.github.v3+json',
+    'Content-Type': 'application/json',
+  };
+}
+
+function setSyncStatus(type, msg) {
+  const el = document.getElementById('syncStatus');
+  if (!el) return;
+  el.className = type;
+  el.innerHTML = msg;
+  if (type === 'ok') setTimeout(() => { if (el.innerHTML === msg) el.innerHTML = ''; }, 2000);
+}
+
+function save() {
+  if (!ghConfig) return;
+  clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(_doSave, 800);
+}
+
+async function _doSave() {
+  if (!ghConfig) return;
+  setSyncStatus('pending', '💾 Sauvegarde…');
   try {
-    const raw = localStorage.getItem('budget_v1');
-    if (raw) state = Object.assign(makeDefault(), JSON.parse(raw));
-  } catch(e) { /* ignore */ }
+    const json    = JSON.stringify(state);
+    const content = btoa(unescape(encodeURIComponent(json)));
+    const body    = { message: 'Budget update', content, branch: ghConfig.branch };
+    if (ghSha) body.sha = ghSha;
+    const res = await fetch(
+      `https://api.github.com/repos/${ghConfig.owner}/${ghConfig.repo}/contents/budget-data.json`,
+      { method: 'PUT', headers: ghHeaders(), body: JSON.stringify(body) }
+    );
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    ghSha = data.content.sha;
+    setSyncStatus('ok', '✅ Sauvegardé');
+  } catch(e) {
+    setSyncStatus('err', '❌ Erreur sync &mdash; <a href="#" onclick="save();return false" style="color:var(--red)">Réessayer</a>');
+  }
+}
+
+async function loadFromGitHub() {
+  if (!ghConfig) { showConfigScreen(); return; }
+  setSyncStatus('pending', '⏳ Chargement…');
+  try {
+    const res = await fetch(
+      `https://api.github.com/repos/${ghConfig.owner}/${ghConfig.repo}/contents/budget-data.json?ref=${ghConfig.branch}`,
+      { headers: ghHeaders() }
+    );
+    if (res.status === 404) {
+      ghSha = null;
+      setSyncStatus('ok', '✅ Prêt (nouveau fichier)');
+      return;
+    }
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data    = await res.json();
+    ghSha         = data.sha;
+    const decoded = decodeURIComponent(escape(atob(data.content.replace(/\n/g, ''))));
+    state = Object.assign(makeDefault(), JSON.parse(decoded));
+    setSyncStatus('ok', '✅ Chargé');
+  } catch(e) {
+    setSyncStatus('err', '❌ Erreur chargement : ' + e.message);
+  }
+}
+
+// =====================================================================
+// CONFIG SCREEN
+// =====================================================================
+function showConfigScreen() {
+  document.getElementById('configScreen').classList.add('open');
+  document.getElementById('cfgCancelBtn').style.display = ghConfig ? '' : 'none';
+  document.getElementById('cfgError').style.display = 'none';
+  if (ghConfig) {
+    document.getElementById('cfgToken').value  = ghConfig.token  || '';
+    document.getElementById('cfgRepo').value   = ghConfig.repo   || '';
+    document.getElementById('cfgBranch').value = ghConfig.branch || 'main';
+  }
+}
+
+function hideConfigScreen() {
+  document.getElementById('configScreen').classList.remove('open');
+}
+
+async function connectGitHub() {
+  const token  = document.getElementById('cfgToken').value.trim();
+  const repo   = document.getElementById('cfgRepo').value.trim();
+  const branch = document.getElementById('cfgBranch').value.trim() || 'main';
+  const errEl  = document.getElementById('cfgError');
+  const btn    = document.getElementById('cfgConnectBtn');
+  errEl.style.display = 'none';
+
+  if (!token || !repo) {
+    errEl.textContent = 'Token et nom du repo requis.';
+    errEl.style.display = '';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Connexion…';
+  try {
+    const userRes = await fetch('https://api.github.com/user', {
+      headers: { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json' },
+    });
+    if (!userRes.ok) throw new Error('Token invalide (HTTP ' + userRes.status + ')');
+    const { login: owner } = await userRes.json();
+
+    const repoRes = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
+      headers: { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json' },
+    });
+    if (!repoRes.ok) throw new Error(`Repo "${owner}/${repo}" introuvable ou inaccessible (HTTP ${repoRes.status})`);
+
+    persistGhConfig({ token, owner, repo, branch });
+    hideConfigScreen();
+    await loadFromGitHub();
+    renderAll();
+  } catch(e) {
+    errEl.innerHTML = '❌ ' + e.message;
+    errEl.style.display = '';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Se connecter';
+  }
 }
 
 function exportData() {
@@ -360,7 +534,7 @@ function importData(e) {
   r.onload = ev => {
     try {
       state = JSON.parse(ev.target.result);
-      save(); renderAll();
+      renderAll(); save();
     } catch { alert('Fichier invalide.'); }
   };
   r.readAsText(f);
@@ -707,8 +881,17 @@ function renderAll() {
   renderProjection();
 }
 
-load();
-renderAll();
+async function init() {
+  loadGhConfig();
+  if (!ghConfig) {
+    showConfigScreen();
+  } else {
+    await loadFromGitHub();
+    renderAll();
+  }
+}
+
+init();
 </script>
 </body>
 </html>
