@@ -220,7 +220,13 @@ body.dark .by{background:#78350f;color:#fde68a}
       <span style="font-size:.75rem;color:var(--text2)">€/mois</span>
     </div>
     <span style="font-size:.78rem;color:var(--text2)">— modifiables mois par mois ci-dessous</span>
-    <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">
+    <div class="sf" style="margin-left:auto">
+      <label style="color:var(--primary);font-weight:600">Épargne de départ</label>
+      <input type="number" class="input input-sm" id="epargneDepInput" min="0"
+        onchange="state.epargneDepart=+this.value;save();renderProjection()">
+      <span style="font-size:.75rem;color:var(--text2)">€</span>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn btn-ghost btn-sm" onclick="openAddPrime()">+ Prime / Extra</button>
       <button class="btn btn-ghost btn-sm" onclick="openAddDepPonct()">+ Dépense ponctuelle</button>
     </div>
@@ -354,6 +360,7 @@ function makeDefault() {
       {id:uid(), nom:'Assurances', montant:0},
     ],
     budgetVie: 500,
+    epargneDepart: 0,
     depensesVie: [],
     salaireMr: 2500,
     salaireMme: 0,
@@ -740,9 +747,10 @@ function renderSummary1() {
 function renderProjection() {
   document.getElementById('salMrInput').value = state.salaireMr;
   document.getElementById('salMmeInput').value = state.salaireMme;
+  document.getElementById('epargneDepInput').value = state.epargneDepart || 0;
 
   const charges = totalChargesFixees();
-  let cumule = 0;
+  let cumule = state.epargneDepart || 0;
   let totMr=0, totMme=0, totPrimes=0, totEntrees=0;
   let totCharges=0, totBudgetVie=0, totPonct=0, totSorties=0, totSolde=0;
 
