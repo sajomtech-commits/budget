@@ -82,7 +82,7 @@ tfoot td{font-weight:700;background:var(--bg3);border-top:2px solid var(--border
 .sf input{width:100px}
 
 /* BADGE */
-.badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:.72rem;font-weight:600;cursor:pointer;margin:1px}
+.badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:.72rem;font-weight:600;cursor:pointer;margin:1px;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom}
 .bg{background:#d1fae5;color:#065f46}.br{background:#fee2e2;color:#991b1b}.bb{background:#dbeafe;color:#1d4ed8}.by{background:#fef3c7;color:#92400e}
 body.dark .bg{background:#064e3b;color:#6ee7b7}
 body.dark .br{background:#7f1d1d;color:#fca5a5}
@@ -772,11 +772,11 @@ function renderProjection() {
     totCharges+=charges; totBudgetVie+=budgetVie; totPonct+=ponctTotal; totSorties+=sorties; totSolde+=solde;
 
     const primesBadges = primesM.length
-      ? primesM.map(p => `<span class="badge bg" onclick="editPrime('${p.id}')" title="Cliquer pour modifier">${esc(p.nom)}: ${fmt(p.montant)}</span>`).join('')
+      ? primesM.map(p => `<span class="badge bg" onclick="editPrime('${p.id}')" title="${esc(p.nom)}: ${fmt(p.montant)} — cliquer pour modifier">${esc(p.nom)}: ${fmt(p.montant)}</span>`).join('')
       : '<span style="color:var(--text2);font-size:.78rem">—</span>';
 
     const ponctBadges = ponctM.length
-      ? ponctM.map(d => `<span class="badge br" onclick="editPonct('${d.id}')" title="Cliquer pour modifier">${esc(d.nom)}: ${fmt(d.montant)}</span>`).join('')
+      ? ponctM.map(d => `<span class="badge br" onclick="editPonct('${d.id}')" title="${esc(d.nom)}: ${fmt(d.montant)} — cliquer pour modifier">${esc(d.nom)}: ${fmt(d.montant)}</span>`).join('')
       : '<span style="color:var(--text2);font-size:.78rem">—</span>';
 
     const mrOv  = ov.mr  !== undefined;
