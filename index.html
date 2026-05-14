@@ -91,9 +91,13 @@ body.dark .by{background:#78350f;color:#fde68a}
 
 /* PROJECTION TABLE */
 .proj-wrap{overflow-x:auto;border-radius:var(--radius)}
-.proj-table th,.proj-table td{padding:8px 10px;white-space:nowrap}
-.proj-table td input{width:88px}
-.month-cell{font-weight:600;min-width:90px}
+.proj-table th,.proj-table td{padding:5px 7px;white-space:nowrap;font-size:.78rem}
+.proj-table th{font-size:.68rem}
+.proj-table td input{width:76px;font-size:.76rem;padding:3px 6px}
+.sal-cell{display:flex;flex-direction:column;gap:3px}
+.sal-row{display:flex;align-items:center;gap:3px}
+.sal-label{font-size:.65rem;color:var(--text2);width:22px;flex-shrink:0}
+.month-cell{font-weight:600;min-width:72px}
 .override-input{border-color:var(--yellow) !important}
 .total-row td{font-weight:700;background:var(--bg3);border-top:2px solid var(--border)}
 
@@ -228,16 +232,15 @@ body.dark .by{background:#78350f;color:#fde68a}
       <table class="proj-table">
         <thead><tr>
           <th>Mois</th>
-          <th>Salaire Mr</th>
-          <th>Salaire Mme</th>
-          <th>Primes / Extras</th>
-          <th>Total Entrées</th>
-          <th>Charges fixes</th>
-          <th>Dépenses courantes</th>
-          <th>Dép. exceptionnelles</th>
-          <th>Total Sorties</th>
+          <th>Salaires<br>Mr / Mme</th>
+          <th>Primes</th>
+          <th>Entrées</th>
+          <th>Charges</th>
+          <th>Vie cour.</th>
+          <th>Dép. exc.</th>
+          <th>Sorties</th>
           <th>Solde</th>
-          <th>Cumulé</th>
+          <th>Épargne</th>
         </tr></thead>
         <tbody id="projTbody"></tbody>
         <tfoot id="projTfoot"></tfoot>
@@ -774,14 +777,20 @@ function renderProjection() {
     return `<tr>
       <td class="month-cell">${nom}</td>
       <td>
-        <input type="number" class="input input-sm${mrOv?' override-input':''}" value="${mr}" min="0" style="width:88px"
-          onchange="setSalOv(${i},'mr',+this.value)">
-        ${mrOv?`<button class="btn btn-ghost btn-sm" style="padding:1px 5px;font-size:.7rem;margin-left:2px" onclick="clearSalOv(${i},'mr')" title="Réinitialiser">↺</button>`:''}
-      </td>
-      <td>
-        <input type="number" class="input input-sm${mmeOv?' override-input':''}" value="${mme}" min="0" style="width:88px"
-          onchange="setSalOv(${i},'mme',+this.value)">
-        ${mmeOv?`<button class="btn btn-ghost btn-sm" style="padding:1px 5px;font-size:.7rem;margin-left:2px" onclick="clearSalOv(${i},'mme')" title="Réinitialiser">↺</button>`:''}
+        <div class="sal-cell">
+          <div class="sal-row">
+            <span class="sal-label">Mr</span>
+            <input type="number" class="input input-sm${mrOv?' override-input':''}" value="${mr}" min="0"
+              onchange="setSalOv(${i},'mr',+this.value)">
+            ${mrOv?`<button class="btn btn-ghost btn-sm" style="padding:1px 4px;font-size:.65rem" onclick="clearSalOv(${i},'mr')" title="Réinitialiser">↺</button>`:''}
+          </div>
+          <div class="sal-row">
+            <span class="sal-label">Mme</span>
+            <input type="number" class="input input-sm${mmeOv?' override-input':''}" value="${mme}" min="0"
+              onchange="setSalOv(${i},'mme',+this.value)">
+            ${mmeOv?`<button class="btn btn-ghost btn-sm" style="padding:1px 4px;font-size:.65rem" onclick="clearSalOv(${i},'mme')" title="Réinitialiser">↺</button>`:''}
+          </div>
+        </div>
       </td>
       <td>${primesBadges}</td>
       <td class="pos">${fmt(entrees)}</td>
@@ -798,7 +807,7 @@ function renderProjection() {
   document.getElementById('projTfoot').innerHTML = `
     <tr class="total-row">
       <td>Total annuel</td>
-      <td>${fmt(totMr)}</td><td>${fmt(totMme)}</td>
+      <td><div style="font-size:.72rem"><div>Mr: ${fmt(totMr)}</div><div>Mme: ${fmt(totMme)}</div></div></td>
       <td>${fmt(totPrimes)}</td>
       <td class="pos">${fmt(totEntrees)}</td>
       <td class="neg">${fmt(totCharges)}</td>
