@@ -146,7 +146,7 @@ body.dark .by{background:#78350f;color:#fde68a}
     </label>
     <button class="btn btn-ghost btn-icon" id="darkBtn" onclick="toggleDark()" title="Basculer dark/light">🌙</button>
     <span id="syncStatus"></span>
-    <button class="btn btn-ghost btn-sm" onclick="showConfigScreen()" title="Configuration GitHub">⚙ Config</button>
+    <button class="btn btn-ghost btn-sm" onclick="showIdPrompt()" title="Changer de budget">🔄 Budget</button>
   </div>
 </div>
 
@@ -318,26 +318,19 @@ body.dark .by{background:#78350f;color:#fde68a}
   </div>
 </div>
 
-<!-- CONFIG SCREEN -->
-<div class="config-screen" id="configScreen">
+<!-- ID PROMPT -->
+<div class="config-screen" id="idPromptScreen">
   <div class="config-box">
-    <div class="config-title">🔗 Connexion GitHub</div>
-    <div class="config-subtitle" id="cfgSubtitle"></div>
+    <div class="config-title">💼 Mon Budget</div>
+    <div class="config-subtitle">Choisis un identifiant pour ton budget (ex: "famille", "perso", "projet").<br>
+      Les données seront sauvegardées sur le cloud — accessibles depuis n'importe quel navigateur.</div>
     <div class="form-row">
-      <label class="config-label">Personal Access Token (PAT)
-        <a href="https://github.com/settings/tokens/new?scopes=repo&description=BudgetManager" target="_blank" rel="noopener"
-           style="font-weight:400;margin-left:6px;color:var(--primary);font-size:.75rem">→ Créer un token</a>
-      </label>
-      <input type="password" class="input" id="cfgToken" placeholder="ghp_xxxxxxxxxxxx" autocomplete="off">
+      <label class="config-label">Identifiant du budget</label>
+      <input type="text" class="input" id="budgetIdInput" placeholder="ex: famille1" autocomplete="off">
     </div>
-    <div class="form-row" id="cfgRepoRow" style="display:none">
-      <label class="config-label">Repo GitHub (owner/nom)</label>
-      <input type="text" class="input" id="cfgRepo" placeholder="ex: jean/mon-budget">
-    </div>
-    <div id="cfgError" style="color:var(--red);font-size:.85rem;margin:8px 0;display:none;line-height:1.5"></div>
+    <div id="idError" style="color:var(--red);font-size:.85rem;margin:8px 0;display:none"></div>
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
-      <button class="btn btn-ghost" id="cfgCancelBtn" style="display:none" onclick="hideConfigScreen()">Annuler</button>
-      <button class="btn btn-primary" id="cfgConnectBtn" onclick="connectGitHub()">Se connecter</button>
+      <button class="btn btn-primary" id="idConnectBtn" onclick="connectBudget()">C'est parti</button>
     </div>
   </div>
 </div>
@@ -382,29 +375,30 @@ function makeDefault() {
 let state = makeDefault();
 
 // =====================================================================
-// GITHUB CONFIG & PERSISTENCE
+// SUPABASE PERSISTENCE
 // =====================================================================
-let ghConfig = null;  // {token, owner, repo, branch}
-let ghSha    = null;  // SHA du fichier budget-data.json actuel
+const SUPABASE_URL = 'https://supabase.sagetech.vip';
+const SUPABASE_KEY = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3ODc4NTIwMCwiZXhwIjo0OTM0NDU4ODAwLCJyb2xlIjoic2VydmljZV9yb2xlIn0.iDaEfe4pHMzkeff9Cu8c-YjwDAes5NY75oPD1oVmuIk';
+
+let budgetId = null;
 let _saveTimer = null;
 
-function loadGhConfig() {
+function loadBudgetId() {
   try {
-    const raw = localStorage.getItem('budget_gh_config');
-    if (raw) ghConfig = JSON.parse(raw);
+    const raw = localStorage.getItem('budget_id');
+    if (raw) budgetId = raw;
   } catch(e) {}
 }
 
-function persistGhConfig(cfg) {
-  ghConfig = cfg;
-  localStorage.setItem('budget_gh_config', JSON.stringify(cfg));
+function persistBudgetId(id) {
+  budgetId = id;
+  localStorage.setItem('budget_id', id);
 }
 
-function ghHeaders() {
+function sbHeaders() {
   return {
-    'Authorization': 'token ' + ghConfig.token,
-    'Accept': 'application/vnd.github.v3+json',
-    'Content-Type': 'application/json',
+    'apikey': SUPABASE_KEY,
+    'Authorization': 'Bearer ' + SUPABASE_KEY,
   };
 }
 
@@ -417,76 +411,42 @@ function setSyncStatus(type, msg) {
 }
 
 function save() {
-  if (!ghConfig) return;
+  if (!budgetId) return;
   clearTimeout(_saveTimer);
   _saveTimer = setTimeout(_doSave, 800);
 }
 
 async function _doSave() {
-  if (!ghConfig) return;
+  if (!budgetId) return;
   setSyncStatus('pending', '💾 Sauvegarde…');
   try {
-    const json    = JSON.stringify(state);
-    const content = btoa(unescape(encodeURIComponent(json)));
-    const body    = { message: 'Budget update', content, branch: ghConfig.branch };
-    if (ghSha) body.sha = ghSha;
-
-    let res = await fetch(
-      `https://api.github.com/repos/${ghConfig.owner}/${ghConfig.repo}/contents/budget-data.json`,
-      { method: 'PUT', headers: ghHeaders(), body: JSON.stringify(body) }
-    );
-
-    // 422 = SHA manquant ou périmé → on refetch le SHA et on réessaie une fois
-    if (res.status === 422) {
-      await _refreshSha();
-      if (ghSha) body.sha = ghSha;
-      res = await fetch(
-        `https://api.github.com/repos/${ghConfig.owner}/${ghConfig.repo}/contents/budget-data.json`,
-        { method: 'PUT', headers: ghHeaders(), body: JSON.stringify(body) }
-      );
-    }
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(`HTTP ${res.status}${err.message ? ' – ' + err.message : ''}`);
-    }
-    const data = await res.json();
-    ghSha = data.content.sha;
+    const json = JSON.stringify(state);
+    const url = `${SUPABASE_URL}/storage/v1/object/budget-data/${budgetId}.json`;
+    const res = await fetch(url, {
+      method: 'PUT',
+      headers: { ...sbHeaders(), 'Content-Type': 'application/json' },
+      body: json,
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
     setSyncStatus('ok', '✅ Sauvegardé');
   } catch(e) {
     setSyncStatus('err', `❌ ${e.message} &mdash; <a href="#" onclick="_doSave();return false" style="color:var(--red)">Réessayer</a>`);
   }
 }
 
-async function _refreshSha() {
-  try {
-    const res = await fetch(
-      `https://api.github.com/repos/${ghConfig.owner}/${ghConfig.repo}/contents/budget-data.json?ref=${ghConfig.branch}`,
-      { headers: ghHeaders() }
-    );
-    if (res.ok) { const d = await res.json(); ghSha = d.sha; }
-    else if (res.status === 404) { ghSha = null; }
-  } catch(e) { /* ignore, on réessaiera avec le SHA courant */ }
-}
-
-async function loadFromGitHub() {
-  if (!ghConfig) { showConfigScreen(); return; }
+async function loadFromSupabase() {
+  if (!budgetId) { showIdPrompt(); return; }
   setSyncStatus('pending', '⏳ Chargement…');
   try {
-    const res = await fetch(
-      `https://api.github.com/repos/${ghConfig.owner}/${ghConfig.repo}/contents/budget-data.json?ref=${ghConfig.branch}`,
-      { headers: ghHeaders() }
-    );
+    const url = `${SUPABASE_URL}/storage/v1/object/budget-data/${budgetId}.json`;
+    const res = await fetch(url, { headers: sbHeaders() });
     if (res.status === 404) {
-      ghSha = null;
-      setSyncStatus('ok', '✅ Prêt (nouveau fichier)');
+      setSyncStatus('ok', '✅ Prêt (nouveau budget)');
       return;
     }
     if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data    = await res.json();
-    ghSha         = data.sha;
-    const decoded = decodeURIComponent(escape(atob(data.content.replace(/\n/g, ''))));
-    state = Object.assign(makeDefault(), JSON.parse(decoded));
+    const text = await res.text();
+    state = Object.assign(makeDefault(), JSON.parse(text));
     setSyncStatus('ok', '✅ Chargé');
   } catch(e) {
     setSyncStatus('err', '❌ Erreur chargement : ' + e.message);
@@ -494,96 +454,30 @@ async function loadFromGitHub() {
 }
 
 // =====================================================================
-// CONFIG SCREEN
+// ID PROMPT
 // =====================================================================
 
-// Détecte owner/repo depuis l'URL GitHub Pages (https://{owner}.github.io/{repo}/)
-function detectFromUrl() {
-  const m = window.location.hostname.match(/^([^.]+)\.github\.io$/);
-  if (m) {
-    const owner = m[1];
-    const repo  = window.location.pathname.split('/').filter(Boolean)[0] || '';
-    if (repo) return { owner, repo, branch: 'main' };
-  }
-  return null;
-}
-
-let _autoRepo = detectFromUrl(); // non-null = on est sur GitHub Pages
-
-function showConfigScreen() {
-  const screen = document.getElementById('configScreen');
+function showIdPrompt() {
+  const screen = document.getElementById('idPromptScreen');
   screen.classList.add('open');
-  document.getElementById('cfgCancelBtn').style.display = ghConfig ? '' : 'none';
-  document.getElementById('cfgError').style.display = 'none';
-
-  // Pré-remplir le token si déjà configuré
-  document.getElementById('cfgToken').value = ghConfig ? ghConfig.token : '';
-
-  // Afficher/masquer le champ repo selon le contexte
-  const repoRow = document.getElementById('cfgRepoRow');
-  if (_autoRepo) {
-    repoRow.style.display = 'none';
-    document.getElementById('cfgSubtitle').innerHTML =
-      `Tes données seront sauvegardées dans <strong>${_autoRepo.owner}/${_autoRepo.repo}</strong> (branche <code>${_autoRepo.branch}</code>).<br>
-       Colle ton <strong>Personal Access Token</strong> ci-dessous.`;
-  } else {
-    repoRow.style.display = '';
-    document.getElementById('cfgRepo').value = ghConfig ? `${ghConfig.owner}/${ghConfig.repo}` : '';
-    document.getElementById('cfgSubtitle').innerHTML =
-      `Tes données seront sauvegardées dans un fichier <code>budget-data.json</code> dans ton repo GitHub.<br>
-       Colle ton <strong>Personal Access Token</strong> (permission <code>repo</code>) et indique le repo.`;
-  }
+  document.getElementById('budgetIdInput').value = budgetId || '';
+  document.getElementById('idError').style.display = 'none';
 }
 
-function hideConfigScreen() {
-  document.getElementById('configScreen').classList.remove('open');
+function hideIdPrompt() {
+  document.getElementById('idPromptScreen').classList.remove('open');
 }
 
-async function connectGitHub() {
-  const token = document.getElementById('cfgToken').value.trim();
-  const errEl = document.getElementById('cfgError');
-  const btn   = document.getElementById('cfgConnectBtn');
+async function connectBudget() {
+  const id = document.getElementById('budgetIdInput').value.trim();
+  const errEl = document.getElementById('idError');
   errEl.style.display = 'none';
+  if (!id) { errEl.textContent = 'Identifiant requis.'; errEl.style.display = ''; return; }
 
-  if (!token) { errEl.textContent = 'Token requis.'; errEl.style.display = ''; return; }
-
-  btn.disabled = true; btn.textContent = 'Connexion…';
-  try {
-    // Résoudre le owner depuis /user
-    const userRes = await fetch('https://api.github.com/user', {
-      headers: { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json' },
-    });
-    if (!userRes.ok) throw new Error(`Token invalide (HTTP ${userRes.status})`);
-    const { login: apiOwner } = await userRes.json();
-
-    let owner, repo, branch;
-    if (_autoRepo) {
-      owner  = _autoRepo.owner;
-      repo   = _autoRepo.repo;
-    } else {
-      const raw = document.getElementById('cfgRepo').value.trim();
-      if (!raw.includes('/')) throw new Error('Format requis : owner/repo (ex: jean/mon-budget)');
-      [owner, repo] = raw.split('/');
-    }
-
-    // Vérifier l'accès au repo et récupérer la branche par défaut
-    const repoRes = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
-      headers: { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json' },
-    });
-    if (!repoRes.ok) throw new Error(`Repo "${owner}/${repo}" inaccessible (HTTP ${repoRes.status})`);
-    const repoData = await repoRes.json();
-    branch = repoData.default_branch;
-
-    persistGhConfig({ token, owner, repo, branch });
-    hideConfigScreen();
-    await loadFromGitHub();
-    renderAll();
-  } catch(e) {
-    errEl.innerHTML = '❌ ' + e.message;
-    errEl.style.display = '';
-  } finally {
-    btn.disabled = false; btn.textContent = 'Se connecter';
-  }
+  persistBudgetId(id);
+  hideIdPrompt();
+  await loadFromSupabase();
+  renderAll();
 }
 
 function exportData() {
@@ -597,11 +491,11 @@ function importData(e) {
   const f = e.target.files[0];
   if (!f) return;
   const r = new FileReader();
-  r.onload = ev => {
+  r.onload = function(ev) {
     try {
-      state = JSON.parse(ev.target.result);
-      renderAll(); save();
-    } catch { alert('Fichier invalide.'); }
+      state = Object.assign(makeDefault(), JSON.parse(ev.target.result));
+      save(); renderAll();
+    } catch(e) { alert('Fichier invalide: ' + e.message); }
   };
   r.readAsText(f);
   e.target.value = '';
@@ -955,11 +849,11 @@ function renderAll() {
 }
 
 async function init() {
-  loadGhConfig();
-  if (!ghConfig) {
-    showConfigScreen();
+  loadBudgetId();
+  if (!budgetId) {
+    showIdPrompt();
   } else {
-    await loadFromGitHub();
+    await loadFromSupabase();
     renderAll();
   }
 }
