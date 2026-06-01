@@ -11,7 +11,7 @@
   --text:#1a1a2e;--text2:#6b7280;
   --border:#e5e7eb;
   --primary:#4f46e5;--primary-h:#4338ca;
-  --green:#10b981;--red:#ef4444;--yellow:#f59e0b;
+  --green:#10b981;--red:#ef4444;--yellow:#f59e0b;--blue:#3b82f6;
   --shadow:0 1px 3px rgba(0,0,0,.1),0 1px 2px rgba(0,0,0,.06);
   --shadow-md:0 4px 6px rgba(0,0,0,.07),0 2px 4px rgba(0,0,0,.06);
   --radius:8px;
@@ -24,6 +24,7 @@ body.dark{
   --shadow-md:0 4px 6px rgba(0,0,0,.3);
 }
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .2s,color .2s}
+a{color:var(--primary)}
 
 /* HEADER */
 .header{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--shadow);position:sticky;top:0;z-index:100}
@@ -37,12 +38,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .btn-sm{padding:4px 10px;font-size:.8rem}
 .btn-icon{padding:7px 10px;border-radius:50%}
 .btn-danger{background:var(--red);color:#fff}.btn-danger:hover{opacity:.85}
+.btn-blue{background:var(--blue);color:#fff}.btn-blue:hover{opacity:.85}
 
 /* TABS */
-.tabs-nav{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);padding:0 24px}
-.tab-btn{padding:14px 20px;background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;font-size:.9rem;font-weight:500;color:var(--text2);transition:all .15s}
+.tabs-nav{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);padding:0 24px;flex-wrap:wrap}
+.tab-btn{padding:14px 20px;background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;font-size:.9rem;font-weight:500;color:var(--text2);transition:all .15s;white-space:nowrap}
+.tab-btn .tab-name{display:inline;min-width:30px}
+.tab-btn .tab-name[contenteditable]{outline:none;border-bottom:1px dashed var(--text2)}
+.tab-btn.active .tab-name[contenteditable]{border-bottom-color:var(--primary)}
 .tab-btn.active{color:var(--primary);border-bottom-color:var(--primary)}
-.tab-content{display:none;padding:24px;max-width:1300px;margin:0 auto}
+.tab-content{display:none;padding:24px;max-width:1400px;margin:0 auto}
 .tab-content.active{display:block}
 
 /* CARDS */
@@ -62,16 +67,18 @@ tfoot td{font-weight:700;background:var(--bg3);border-top:2px solid var(--border
 .input{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:7px 10px;color:var(--text);font-size:.875rem;width:100%;transition:border .15s}
 .input:focus{outline:none;border-color:var(--primary)}
 .input-sm{padding:4px 8px;font-size:.8rem}
+.input-xs{padding:2px 5px;font-size:.72rem;width:70px}
 
 /* AMOUNTS */
 .pos{color:var(--green);font-weight:600}
 .neg{color:var(--red);font-weight:600}
 .zero{color:var(--text2)}
+.pr{color:var(--blue);font-weight:600}
 
 /* SUMMARY BAR */
 .summary-bar{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px}
 .sc{flex:1;min-width:130px;background:var(--bg2);border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow);border-left:3px solid var(--primary)}
-.sc.g{border-left-color:var(--green)}.sc.r{border-left-color:var(--red)}.sc.y{border-left-color:var(--yellow)}
+.sc.g{border-left-color:var(--green)}.sc.r{border-left-color:var(--red)}.sc.y{border-left-color:var(--yellow)}.sc.b{border-left-color:var(--blue)}
 .sc-label{font-size:.72rem;color:var(--text2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em}
 .sc-val{font-size:1.35rem;font-weight:700}
 
@@ -83,23 +90,28 @@ tfoot td{font-weight:700;background:var(--bg3);border-top:2px solid var(--border
 
 /* BADGE */
 .badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:.72rem;font-weight:600;cursor:pointer;margin:1px;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom}
-.bg{background:#d1fae5;color:#065f46}.br{background:#fee2e2;color:#991b1b}.bb{background:#dbeafe;color:#1d4ed8}.by{background:#fef3c7;color:#92400e}
+.bg{background:#d1fae5;color:#065f46}.br{background:#fee2e2;color:#991b1b}.bb{background:#dbeafe;color:#1d4ed8}.by{background:#fef3c7;color:#92400e}.bp{background:#e0e7ff;color:#3730a3}
 body.dark .bg{background:#064e3b;color:#6ee7b7}
 body.dark .br{background:#7f1d1d;color:#fca5a5}
 body.dark .bb{background:#1e3a5f;color:#93c5fd}
 body.dark .by{background:#78350f;color:#fde68a}
+body.dark .bp{background:#312e81;color:#c7d2fe}
 
 /* PROJECTION TABLE */
 .proj-wrap{overflow-x:auto;border-radius:var(--radius)}
 .proj-table th,.proj-table td{padding:5px 7px;white-space:nowrap;font-size:.78rem}
 .proj-table th{font-size:.68rem}
 .proj-table td input{width:76px;font-size:.76rem;padding:3px 6px}
-.sal-cell{display:flex;flex-direction:column;gap:3px}
+.proj-table td input.input-xs{width:62px;font-size:.72rem;padding:2px 5px}
+.sal-cell{display:flex;flex-direction:column;gap:2px}
 .sal-row{display:flex;align-items:center;gap:3px}
-.sal-label{font-size:.65rem;color:var(--text2);width:22px;flex-shrink:0}
+.sal-label{font-size:.62rem;color:var(--text2);width:18px;flex-shrink:0}
+.sal-label.caf{color:var(--blue)}
 .month-cell{font-weight:600;min-width:72px}
 .override-input{border-color:var(--yellow) !important}
 .total-row td{font-weight:700;background:var(--bg3);border-top:2px solid var(--border)}
+.sim-badge{display:inline-block;background:#e0e7ff;color:#3730a3;font-size:.7rem;padding:3px 10px;border-radius:20px;font-weight:600;margin-left:10px;vertical-align:middle}
+body.dark .sim-badge{background:#312e81;color:#c7d2fe}
 
 /* MODAL */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1000;align-items:center;justify-content:center}
@@ -119,6 +131,7 @@ body.dark .by{background:#78350f;color:#fde68a}
 .config-title{font-size:1.2rem;font-weight:700;margin-bottom:6px;color:var(--primary)}
 .config-subtitle{font-size:.84rem;color:var(--text2);margin-bottom:22px;line-height:1.5}
 .config-label{font-size:.8rem;font-weight:600;color:var(--text2);margin-bottom:4px;display:block}
+
 /* SYNC INDICATOR */
 #syncStatus{font-size:.8rem;font-weight:500;white-space:nowrap}
 #syncStatus.ok{color:var(--green)}
@@ -151,9 +164,14 @@ body.dark .by{background:#78350f;color:#fde68a}
 </div>
 
 <!-- TABS NAV -->
-<div class="tabs-nav">
-  <button class="tab-btn active" onclick="switchTab('mensuel',this)">📊 Budget mensuel</button>
-  <button class="tab-btn" onclick="switchTab('projection',this)">📈 Projection 12 mois</button>
+<div class="tabs-nav" id="tabsNav">
+  <button class="tab-btn active" data-tab="mensuel" onclick="switchTab('mensuel')">📊 Budget mensuel</button>
+  <button class="tab-btn" data-tab="projection" onclick="switchTab('projection')">
+    📈 <span class="tab-name" id="tabNameProjection" contenteditable="true" onblur="renameTab('projection',this.textContent)" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}">2026</span>
+  </button>
+  <button class="tab-btn" data-tab="simulation" onclick="switchTab('simulation')">
+    🧪 <span class="tab-name" id="tabNameSimulation" contenteditable="true" onblur="renameTab('simulation',this.textContent)" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}">Simulation</span>
+  </button>
 </div>
 
 <!-- ====== TAB 1 ====== -->
@@ -185,7 +203,7 @@ body.dark .by{background:#78350f;color:#fde68a}
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
         <label style="font-size:.85rem;color:var(--text2)">Budget alloué :</label>
         <input type="number" class="input" style="width:110px" id="budgetVieInput"
-          min="0" onchange="state.budgetVie=+this.value;save();renderSummary1()">
+          min="0" onchange="state.budgetVie=+this.value;save();renderSummary1();renderProjection()">
         <button class="btn btn-primary btn-sm" onclick="openAddDepense()">+ Dépense</button>
       </div>
     </div>
@@ -204,7 +222,6 @@ body.dark .by{background:#78350f;color:#fde68a}
 <!-- ====== TAB 2 ====== -->
 <div class="tab-content" id="tab-projection">
 
-  <!-- Salary config + actions -->
   <div class="salary-config">
     <span style="font-weight:600;font-size:.9rem">Salaires de base :</span>
     <div class="sf">
@@ -217,6 +234,12 @@ body.dark .by{background:#78350f;color:#fde68a}
       <label>Mme</label>
       <input type="number" class="input input-sm" id="salMmeInput" min="0"
         onchange="state.salaireMme=+this.value;save();renderProjection()">
+      <span style="font-size:.75rem;color:var(--text2)">€/mois</span>
+    </div>
+    <div class="sf">
+      <label style="color:var(--blue);font-weight:600">CAF</label>
+      <input type="number" class="input input-sm" id="cafInput" min="0"
+        onchange="state.caf=+this.value;save();renderProjection();renderSummary1()">
       <span style="font-size:.75rem;color:var(--text2)">€/mois</span>
     </div>
     <span style="font-size:.78rem;color:var(--text2)">— modifiables mois par mois ci-dessous</span>
@@ -238,7 +261,7 @@ body.dark .by{background:#78350f;color:#fde68a}
       <table class="proj-table">
         <thead><tr>
           <th>Mois</th>
-          <th>Salaires<br>Mr / Mme</th>
+          <th>Mr / Mme / CAF</th>
           <th>Primes</th>
           <th>Entrées</th>
           <th>Charges</th>
@@ -252,6 +275,82 @@ body.dark .by{background:#78350f;color:#fde68a}
         <tfoot id="projTfoot"></tfoot>
       </table>
     </div>
+  </div>
+</div>
+
+<!-- ====== TAB 3 ====== -->
+<div class="tab-content" id="tab-simulation">
+
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+    <span style="font-weight:600;font-size:.95rem">🧪 Paramètres de simulation</span>
+    <button class="btn btn-blue btn-sm" onclick="resetSimulation()">🔁 Copier depuis le budget réel</button>
+    <span style="font-size:.78rem;color:var(--text2)">— Les modifications n'affectent pas le budget réel</span>
+  </div>
+
+  <div class="salary-config">
+    <span style="font-weight:600;font-size:.9rem">Scénario :</span>
+    <div class="sf">
+      <label>Mr</label>
+      <input type="number" class="input input-sm" id="simSalMrInput" min="0"
+        onchange="state.simulation.salaireMr=+this.value;save();renderSimulation()">
+      <span style="font-size:.75rem;color:var(--text2)">€/mois</span>
+    </div>
+    <div class="sf">
+      <label>Mme</label>
+      <input type="number" class="input input-sm" id="simSalMmeInput" min="0"
+        onchange="state.simulation.salaireMme=+this.value;save();renderSimulation()">
+      <span style="font-size:.75rem;color:var(--text2)">€/mois</span>
+    </div>
+    <div class="sf">
+      <label style="color:var(--blue);font-weight:600">CAF</label>
+      <input type="number" class="input input-sm" id="simCafInput" min="0"
+        onchange="state.simulation.caf=+this.value;save();renderSimulation()">
+      <span style="font-size:.75rem;color:var(--text2)">€/mois</span>
+    </div>
+    <div class="sf">
+      <label>Budget vie</label>
+      <input type="number" class="input input-sm" id="simBudgetVieInput" min="0"
+        onchange="state.simulation.budgetVie=+this.value;save();renderSimulation()">
+      <span style="font-size:.75rem;color:var(--text2)">€/mois</span>
+    </div>
+    <div class="sf">
+      <label style="color:var(--primary);font-weight:600">Épargne départ</label>
+      <input type="number" class="input input-sm" id="simEpargneInput" min="0"
+        onchange="state.simulation.epargneDepart=+this.value;save();renderSimulation()">
+      <span style="font-size:.75rem;color:var(--text2)">€</span>
+    </div>
+  </div>
+
+  <!-- Simulation projection table -->
+  <div class="card" style="padding:0;overflow:hidden">
+    <div class="proj-wrap">
+      <table class="proj-table">
+        <thead><tr>
+          <th>Mois</th>
+          <th>Mr / Mme / CAF</th>
+          <th>Primes</th>
+          <th>Entrées</th>
+          <th>Charges</th>
+          <th>Vie cour.</th>
+          <th>Dép. exc.</th>
+          <th>Sorties</th>
+          <th>Solde</th>
+          <th>Épargne</th>
+        </tr></thead>
+        <tbody id="simProjTbody"></tbody>
+        <tfoot id="simProjTfoot"></tfoot>
+      </table>
+    </div>
+  </div>
+
+  <div class="card" id="simComparison">
+    <div class="card-header">
+      <span class="card-title">📊 Comparaison annuelle</span>
+    </div>
+    <table>
+      <thead><tr><th>Indicateur</th><th>Budget réel</th><th>Simulation</th><th>Écart</th></tr></thead>
+      <tbody id="comparisonTbody"></tbody>
+    </table>
   </div>
 </div>
 
@@ -343,6 +442,18 @@ const MONTHS = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Aoû
 let _uid = 0;
 const uid = () => 'id' + (++_uid) + '_' + Math.random().toString(36).slice(2,6);
 
+function makeDefaultSim() {
+  return {
+    salaireMr: 2500,
+    salaireMme: 1800,
+    caf: 200,
+    budgetVie: 1500,
+    epargneDepart: 24000,
+    salairesOverrides: {},
+    cafOverride: {},
+  };
+}
+
 function makeDefault() {
   return {
     darkMode: false,
@@ -357,7 +468,9 @@ function makeDefault() {
     depensesVie: [],
     salaireMr: 2500,
     salaireMme: 0,
+    caf: 0,
     salairesOverrides: {},
+    cafOverride: {},
     primes: [
       {id:uid(), mois:2,  nom:'Bonus',           montant:0},
       {id:uid(), mois:4,  nom:'RTT',              montant:0},
@@ -369,6 +482,8 @@ function makeDefault() {
       {id:uid(), mois:5, nom:'Collège',        montant:0},
       {id:uid(), mois:9, nom:'Taxe foncière',  montant:0},
     ],
+    simulation: null,
+    tabNames: { projection: '2026', simulation: 'Simulation' },
   };
 }
 
@@ -378,7 +493,7 @@ let state = makeDefault();
 // SUPABASE PERSISTENCE
 // =====================================================================
 const SUPABASE_URL = 'https://supabase.sagetech.vip';
-const SUPABASE_KEY = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3ODc4NTIwMCwiZXhwIjo0OTM0NDU4ODAwLCJyb2xlIjoic2VydmljZV9yb2xlIn0.iDaEfe4pHMzkeff9Cu8c-YjwDAes5NY75oPD1oVmuIk';
+const SUPABASE_KEY = 'eyJ0eX...muIk';
 
 let budgetId = null;
 let _saveTimer = null;
@@ -447,6 +562,11 @@ async function loadFromSupabase() {
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const text = await res.text();
     state = Object.assign(makeDefault(), JSON.parse(text));
+    // Ensure simulation & caf exist in legacy data
+    if (state.simulation === undefined) state.simulation = null;
+    if (state.caf === undefined) state.caf = 0;
+    if (state.cafOverride === undefined) state.cafOverride = {};
+    if (!state.tabNames) state.tabNames = { projection: '2026', simulation: 'Simulation' };
     setSyncStatus('ok', '✅ Chargé');
   } catch(e) {
     setSyncStatus('err', '❌ Erreur chargement : ' + e.message);
@@ -494,6 +614,10 @@ function importData(e) {
   r.onload = function(ev) {
     try {
       state = Object.assign(makeDefault(), JSON.parse(ev.target.result));
+      if (state.simulation === undefined) state.simulation = null;
+      if (state.caf === undefined) state.caf = 0;
+      if (state.cafOverride === undefined) state.cafOverride = {};
+      if (!state.tabNames) state.tabNames = { projection: '2026', simulation: 'Simulation' };
       save(); renderAll();
     } catch(e) { alert('Fichier invalide: ' + e.message); }
   };
@@ -509,7 +633,7 @@ function fmt(n) {
 }
 function cls(n) { return n > 0 ? 'pos' : n < 0 ? 'neg' : 'zero'; }
 function esc(s) {
-  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;');
 }
 function totalChargesFixees() {
   return state.chargesFixees.reduce((s,c) => s + (+c.montant||0), 0);
@@ -530,11 +654,27 @@ function applyDark() {
 // =====================================================================
 // TABS
 // =====================================================================
-function switchTab(name, btn) {
+function switchTab(name) {
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
-  btn.classList.add('active');
+  document.querySelector(`.tab-btn[data-tab="${name}"]`).classList.add('active');
+
+  // Init simulation on first visit
+  if (name === 'simulation' && !state.simulation) {
+    resetSimulation();
+  }
+}
+
+function renameTab(tab, newName) {
+  const trimmed = newName.trim();
+  if (trimmed) {
+    state.tabNames[tab] = trimmed;
+    save();
+  } else {
+    // Restore saved name
+    document.getElementById('tabName' + tab.charAt(0).toUpperCase() + tab.slice(1)).textContent = state.tabNames[tab];
+  }
 }
 
 // =====================================================================
@@ -624,11 +764,12 @@ function saveDep() {
 function renderSummary1() {
   const charges = totalChargesFixees();
   const depTotal = state.depensesVie.reduce((s,d) => s + (+d.montant||0), 0);
-  const entrees = (state.salaireMr||0) + (state.salaireMme||0);
+  const entrees = (state.salaireMr||0) + (state.salaireMme||0) + (state.caf||0);
   const resteVie = (state.budgetVie||0) - depTotal;
   const solde = entrees - charges - depTotal;
   document.getElementById('summary1').innerHTML = `
-    <div class="sc"><div class="sc-label">Entrées (salaires)</div><div class="sc-val pos">${fmt(entrees)}</div></div>
+    <div class="sc"><div class="sc-label">Salaires</div><div class="sc-val pos">${fmt(state.salaireMr + state.salaireMme)}</div></div>
+    <div class="sc b"><div class="sc-label">CAF</div><div class="sc-val pr">${fmt(state.caf||0)}</div></div>
     <div class="sc r"><div class="sc-label">Charges fixes</div><div class="sc-val neg">${fmt(charges)}</div></div>
     <div class="sc y"><div class="sc-label">Budget vie courante</div><div class="sc-val">${fmt(state.budgetVie)}</div></div>
     <div class="sc ${resteVie>=0?'g':'r'}"><div class="sc-label">Reste vie courante</div><div class="sc-val ${cls(resteVie)}">${fmt(resteVie)}</div></div>
@@ -636,34 +777,52 @@ function renderSummary1() {
 }
 
 // =====================================================================
-// TAB 2 — PROJECTION
+// PROJECTION RENDERING (shared between real & sim)
 // =====================================================================
-function renderProjection() {
-  document.getElementById('salMrInput').value = state.salaireMr;
-  document.getElementById('salMmeInput').value = state.salaireMme;
-  document.getElementById('epargneDepInput').value = state.epargneDepart || 0;
+function buildProjectionRows(params) {
+  const {
+    // Main state reference for shared data
+    chargesFixees,
+    primes,
+    depensesPonctuelles,
+    // Overridable params
+    salaireMr,
+    salaireMme,
+    caf,
+    budgetVie,
+    epargneDepart,
+    salairesOverrides,
+    cafOverride,
+  } = params;
 
-  const charges = totalChargesFixees();
-  let cumule = state.epargneDepart || 0;
-  let totMr=0, totMme=0, totPrimes=0, totEntrees=0;
+  // Use different override functions for sim vs real tables
+  const sFn      = params.isSim ? 'simSetSalOv'     : 'setSalOv';
+  const cFn      = params.isSim ? 'simClearSalOv'   : 'clearSalOv';
+  const cafSfn   = params.isSim ? 'simSetCafOv'     : 'setCafOv';
+  const cafCfn   = params.isSim ? 'simClearCafOv'   : 'clearCafOv';
+
+  const charges = chargesFixees.reduce((s,c) => s + (+c.montant||0), 0);
+  let cumule = epargneDepart || 0;
+  let totMr=0, totMme=0, totCaf=0, totPrimes=0, totEntrees=0;
   let totCharges=0, totBudgetVie=0, totPonct=0, totSorties=0, totSolde=0;
 
   const rows = MONTHS.map((nom, i) => {
-    const ov = state.salairesOverrides[i] || {};
-    const mr  = ov.mr  !== undefined ? ov.mr  : state.salaireMr;
-    const mme = ov.mme !== undefined ? ov.mme : state.salaireMme;
-    const primesM = state.primes.filter(p => p.mois == i);
-    const ponctM  = state.depensesPonctuelles.filter(d => d.mois == i);
+    const ov = salairesOverrides[i] || {};
+    const cv = cafOverride[i] !== undefined ? cafOverride[i] : caf;
+    const mr  = ov.mr  !== undefined ? ov.mr  : salaireMr;
+    const mme = ov.mme !== undefined ? ov.mme : salaireMme;
+    const primesM = primes.filter(p => p.mois == i);
+    const ponctM  = depensesPonctuelles.filter(d => d.mois == i);
     const primesTotal = primesM.reduce((s,p) => s+(+p.montant||0), 0);
     const ponctTotal  = ponctM.reduce((s,d) => s+(+d.montant||0), 0);
-    const budgetVie   = state.budgetVie || 0;
-    const entrees = mr + mme + primesTotal;
-    const sorties = charges + budgetVie + ponctTotal;
+    const bv = budgetVie || 0;
+    const entrees = mr + mme + cv + primesTotal;
+    const sorties = charges + bv + ponctTotal;
     const solde = entrees - sorties;
     cumule += solde;
 
-    totMr+=mr; totMme+=mme; totPrimes+=primesTotal; totEntrees+=entrees;
-    totCharges+=charges; totBudgetVie+=budgetVie; totPonct+=ponctTotal; totSorties+=sorties; totSolde+=solde;
+    totMr+=mr; totMme+=mme; totCaf+=cv; totPrimes+=primesTotal; totEntrees+=entrees;
+    totCharges+=charges; totBudgetVie+=bv; totPonct+=ponctTotal; totSorties+=sorties; totSolde+=solde;
 
     const primesBadges = primesM.length
       ? primesM.map(p => `<span class="badge bg" onclick="editPrime('${p.id}')" title="${esc(p.nom)}: ${fmt(p.montant)} — cliquer pour modifier">${esc(p.nom)}: ${fmt(p.montant)}</span>`).join('')
@@ -675,6 +834,7 @@ function renderProjection() {
 
     const mrOv  = ov.mr  !== undefined;
     const mmeOv = ov.mme !== undefined;
+    const cafOv = cafOverride[i] !== undefined;
 
     return `<tr>
       <td class="month-cell">${nom}</td>
@@ -683,21 +843,27 @@ function renderProjection() {
           <div class="sal-row">
             <span class="sal-label">Mr</span>
             <input type="number" class="input input-sm${mrOv?' override-input':''}" value="${mr}" min="0"
-              onchange="setSalOv(${i},'mr',+this.value)">
-            ${mrOv?`<button class="btn btn-ghost btn-sm" style="padding:1px 4px;font-size:.65rem" onclick="clearSalOv(${i},'mr')" title="Réinitialiser">↺</button>`:''}
+              onchange="${sFn}(${i},'mr',+this.value)" ${params.isSim ? 'data-sim="1"':''}>
+            ${mrOv?`<button class="btn btn-ghost btn-sm" style="padding:1px 4px;font-size:.65rem" onclick="${cFn}(${i},'mr')" title="Réinitialiser">↺</button>`:''}
           </div>
           <div class="sal-row">
             <span class="sal-label">Mme</span>
             <input type="number" class="input input-sm${mmeOv?' override-input':''}" value="${mme}" min="0"
-              onchange="setSalOv(${i},'mme',+this.value)">
-            ${mmeOv?`<button class="btn btn-ghost btn-sm" style="padding:1px 4px;font-size:.65rem" onclick="clearSalOv(${i},'mme')" title="Réinitialiser">↺</button>`:''}
+              onchange="${sFn}(${i},'mme',+this.value)" ${params.isSim ? 'data-sim="1"':''}>
+            ${mmeOv?`<button class="btn btn-ghost btn-sm" style="padding:1px 4px;font-size:.65rem" onclick="${cFn}(${i},'mme')" title="Réinitialiser">↺</button>`:''}
+          </div>
+          <div class="sal-row">
+            <span class="sal-label caf">CAF</span>
+            <input type="number" class="input input-sm input-xs${cafOv?' override-input':''}" value="${cv}" min="0"
+              onchange="${cafSfn}(${i},+this.value)" ${params.isSim ? 'data-sim="1"':''}>
+            ${cafOv?`<button class="btn btn-ghost btn-sm" style="padding:1px 4px;font-size:.65rem" onclick="${cafCfn}(${i})" title="Réinitialiser">↺</button>`:''}
           </div>
         </div>
       </td>
       <td>${primesBadges}</td>
       <td class="pos">${fmt(entrees)}</td>
       <td class="neg">${fmt(charges)}</td>
-      <td class="neg">${fmt(budgetVie)}</td>
+      <td class="neg">${fmt(bv)}</td>
       <td>${ponctBadges}</td>
       <td class="neg">${fmt(sorties)}</td>
       <td class="${cls(solde)}">${fmt(solde)}</td>
@@ -705,11 +871,10 @@ function renderProjection() {
     </tr>`;
   }).join('');
 
-  document.getElementById('projTbody').innerHTML = rows;
-  document.getElementById('projTfoot').innerHTML = `
+  return { rows, foot: `
     <tr class="total-row">
       <td>Total annuel</td>
-      <td><div style="font-size:.72rem"><div>Mr: ${fmt(totMr)}</div><div>Mme: ${fmt(totMme)}</div></div></td>
+      <td><div style="font-size:.72rem"><div>Mr: ${fmt(totMr)}</div><div>Mme: ${fmt(totMme)}</div><div style="color:var(--blue)">CAF: ${fmt(totCaf)}</div></div></td>
       <td>${fmt(totPrimes)}</td>
       <td class="pos">${fmt(totEntrees)}</td>
       <td class="neg">${fmt(totCharges)}</td>
@@ -718,13 +883,42 @@ function renderProjection() {
       <td class="neg">${fmt(totSorties)}</td>
       <td class="${cls(totSolde)}">${fmt(totSolde)}</td>
       <td>—</td>
-    </tr>`;
+    </tr>`, totals: { totMr, totMme, totCaf, totPrimes, totEntrees, totCharges, totBudgetVie, totPonct, totSorties, totSolde } };
+}
+
+// =====================================================================
+// TAB 2 — PROJECTION
+// =====================================================================
+function renderProjection() {
+  document.getElementById('salMrInput').value = state.salaireMr;
+  document.getElementById('salMmeInput').value = state.salaireMme;
+  document.getElementById('cafInput').value = state.caf || 0;
+  document.getElementById('epargneDepInput').value = state.epargneDepart || 0;
+
+  const result = buildProjectionRows({
+    chargesFixees: state.chargesFixees,
+    primes: state.primes,
+    depensesPonctuelles: state.depensesPonctuelles,
+    salaireMr: state.salaireMr,
+    salaireMme: state.salaireMme,
+    caf: state.caf || 0,
+    budgetVie: state.budgetVie,
+    epargneDepart: state.epargneDepart,
+    salairesOverrides: state.salairesOverrides,
+    cafOverride: state.cafOverride,
+    isSim: false,
+  });
+
+  document.getElementById('projTbody').innerHTML = result.rows;
+  document.getElementById('projTfoot').innerHTML = result.foot;
 }
 
 function setSalOv(mois, who, val) {
   if (!state.salairesOverrides[mois]) state.salairesOverrides[mois] = {};
   state.salairesOverrides[mois][who] = val;
   save(); renderProjection();
+  // Also re-render sim if it exists
+  if (state.simulation) renderSimulation();
 }
 
 function clearSalOv(mois, who) {
@@ -733,6 +927,130 @@ function clearSalOv(mois, who) {
     if (!Object.keys(state.salairesOverrides[mois]).length) delete state.salairesOverrides[mois];
   }
   save(); renderProjection();
+  if (state.simulation) renderSimulation();
+}
+
+function setCafOv(mois, val) {
+  state.cafOverride[mois] = val;
+  save(); renderProjection();
+  if (state.simulation) renderSimulation();
+}
+
+function clearCafOv(mois) {
+  delete state.cafOverride[mois];
+  save(); renderProjection();
+  if (state.simulation) renderSimulation();
+}
+
+// =====================================================================
+// TAB 3 — SIMULATION
+// =====================================================================
+function resetSimulation() {
+  state.simulation = {
+    salaireMr: state.salaireMr,
+    salaireMme: state.salaireMme,
+    caf: state.caf || 0,
+    budgetVie: state.budgetVie,
+    epargneDepart: state.epargneDepart,
+    salairesOverrides: JSON.parse(JSON.stringify(state.salairesOverrides)),
+    cafOverride: JSON.parse(JSON.stringify(state.cafOverride)),
+  };
+  save();
+  renderSimulation();
+}
+
+function renderSimulation() {
+  if (!state.simulation) return;
+  const sim = state.simulation;
+
+  document.getElementById('simSalMrInput').value = sim.salaireMr;
+  document.getElementById('simSalMmeInput').value = sim.salaireMme;
+  document.getElementById('simCafInput').value = sim.caf || 0;
+  document.getElementById('simBudgetVieInput').value = sim.budgetVie;
+  document.getElementById('simEpargneInput').value = sim.epargneDepart || 0;
+
+  const result = buildProjectionRows({
+    chargesFixees: state.chargesFixees,
+    primes: state.primes,
+    depensesPonctuelles: state.depensesPonctuelles,
+    salaireMr: sim.salaireMr,
+    salaireMme: sim.salaireMme,
+    caf: sim.caf || 0,
+    budgetVie: sim.budgetVie,
+    epargneDepart: sim.epargneDepart,
+    salairesOverrides: sim.salairesOverrides,
+    cafOverride: sim.cafOverride,
+    isSim: true,
+  });
+
+  document.getElementById('simProjTbody').innerHTML = result.rows;
+  document.getElementById('simProjTfoot').innerHTML = result.foot;
+
+  // Build comparison
+  const real = buildProjectionRows({
+    chargesFixees: state.chargesFixees,
+    primes: state.primes,
+    depensesPonctuelles: state.depensesPonctuelles,
+    salaireMr: state.salaireMr,
+    salaireMme: state.salaireMme,
+    caf: state.caf || 0,
+    budgetVie: state.budgetVie,
+    epargneDepart: state.epargneDepart,
+    salairesOverrides: state.salairesOverrides,
+    cafOverride: state.cafOverride,
+    isSim: false,
+  });
+
+  renderComparison(real.totals, result.totals);
+}
+
+// Override functions for simulation
+function simSetSalOv(mois, who, val) {
+  if (!state.simulation) return;
+  if (!state.simulation.salairesOverrides[mois]) state.simulation.salairesOverrides[mois] = {};
+  state.simulation.salairesOverrides[mois][who] = val;
+  save(); renderSimulation();
+}
+
+function simClearSalOv(mois, who) {
+  if (!state.simulation) return;
+  if (state.simulation.salairesOverrides[mois]) {
+    delete state.simulation.salairesOverrides[mois][who];
+    if (!Object.keys(state.simulation.salairesOverrides[mois]).length) delete state.simulation.salairesOverrides[mois];
+  }
+  save(); renderSimulation();
+}
+
+function simSetCafOv(mois, val) {
+  if (!state.simulation) return;
+  state.simulation.cafOverride[mois] = val;
+  save(); renderSimulation();
+}
+
+function simClearCafOv(mois) {
+  if (!state.simulation) return;
+  delete state.simulation.cafOverride[mois];
+  save(); renderSimulation();
+}
+
+// =====================================================================
+// COMPARISON TABLE
+// =====================================================================
+function renderComparison(real, sim) {
+  const tbody = document.getElementById('comparisonTbody');
+  const labels = ['Salaires Mr','Salaires Mme','CAF','Primes / Extra','Total entrées','Charges fixes','Budget vie courante','Dépenses ponctuelles','Total sorties','Solde annuel'];
+  const realVals = [real.totMr, real.totMme, real.totCaf, real.totPrimes, real.totEntrees, real.totCharges, real.totBudgetVie, real.totPonct, real.totSorties, real.totSolde];
+  const simVals = [sim.totMr, sim.totMme, sim.totCaf, sim.totPrimes, sim.totEntrees, sim.totCharges, sim.totBudgetVie, sim.totPonct, sim.totSorties, sim.totSolde];
+
+  tbody.innerHTML = labels.map((label, i) => {
+    const ecart = simVals[i] - realVals[i];
+    return `<tr>
+      <td><strong>${label}</strong></td>
+      <td class="${cls(realVals[i])}">${fmt(realVals[i])}</td>
+      <td class="${cls(simVals[i])}">${fmt(simVals[i])}</td>
+      <td class="${cls(ecart)}">${ecart >= 0 ? '+' : ''}${fmt(ecart)}</td>
+    </tr>`;
+  }).join('');
 }
 
 // =====================================================================
@@ -773,12 +1091,14 @@ function savePrime() {
     state.primes.push({id:uid(), mois, nom, montant});
   }
   save(); renderProjection(); closeModal('modalPrime');
+  if (state.simulation) renderSimulation();
 }
 
 function deletePrime() {
   if (!_primeId) return;
   state.primes = state.primes.filter(p => p.id !== _primeId);
   save(); renderProjection(); closeModal('modalPrime');
+  if (state.simulation) renderSimulation();
 }
 
 // =====================================================================
@@ -819,12 +1139,14 @@ function savePonct() {
     state.depensesPonctuelles.push({id:uid(), mois, nom, montant});
   }
   save(); renderProjection(); closeModal('modalPonct');
+  if (state.simulation) renderSimulation();
 }
 
 function deletePonct() {
   if (!_ponctId) return;
   state.depensesPonctuelles = state.depensesPonctuelles.filter(d => d.id !== _ponctId);
   save(); renderProjection(); closeModal('modalPonct');
+  if (state.simulation) renderSimulation();
 }
 
 // =====================================================================
@@ -842,10 +1164,19 @@ document.querySelectorAll('.modal-overlay').forEach(o => {
 // =====================================================================
 function renderAll() {
   applyDark();
+  // Restore tab names
+  if (state.tabNames) {
+    const tn = state.tabNames;
+    const pEl = document.getElementById('tabNameProjection');
+    const sEl = document.getElementById('tabNameSimulation');
+    if (pEl) pEl.textContent = tn.projection || '2026';
+    if (sEl) sEl.textContent = tn.simulation || 'Simulation';
+  }
   renderCharges();
   renderDepenses();
   renderSummary1();
   renderProjection();
+  if (state.simulation) renderSimulation();
 }
 
 async function init() {
