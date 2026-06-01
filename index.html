@@ -139,10 +139,90 @@ body.dark .sim-badge{background:#312e81;color:#c7d2fe}
 #syncStatus.pending{color:var(--text2)}
 
 @media(max-width:600px){
-  .header{padding:10px 14px}
-  .tab-content{padding:14px}
-  .tab-btn{padding:12px 12px;font-size:.82rem}
-  .salary-config{padding:12px 14px}
+  html{font-size:14px}
+
+  /* HEADER */
+  .header{padding:8px 12px;flex-wrap:wrap;gap:6px}
+  .header h1{font-size:1rem}
+  .header-actions{gap:5px;flex-wrap:wrap}
+  .header-actions .btn{padding:5px 10px;font-size:.78rem}
+  #syncStatus{font-size:.72rem}
+
+  /* TABS */
+  .tabs-nav{padding:0 8px;overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;gap:0}
+  .tabs-nav::-webkit-scrollbar{display:none}
+  .tab-btn{padding:10px 10px;font-size:.82rem;flex-shrink:0}
+
+  /* CONTENT */
+  .tab-content{padding:10px}
+  .card{padding:12px;margin-bottom:12px}
+  .card-header{gap:6px}
+  .card-title{font-size:.9rem}
+
+  /* SUMMARY BAR */
+  .summary-bar{gap:8px}
+  .sc{min-width:calc(50% - 8px);flex:1 1 calc(50% - 8px);padding:10px 12px}
+  .sc-label{font-size:.65rem}
+  .sc-val{font-size:1.1rem}
+
+  /* SALARY CONFIG */
+  .salary-config{padding:10px 12px;gap:8px}
+  .sf{width:100%}
+  .sf label{font-size:.78rem;min-width:50px}
+  .sf input{width:80px;flex:1;max-width:120px}
+  .salary-config>span:first-child{width:100%}
+  .salary-config>span:last-of-type{width:100%;font-size:.7rem}
+
+  /* TABLES (charges & depenses) */
+  th{padding:6px 8px;font-size:.68rem}
+  td{padding:6px 8px;font-size:.8rem}
+  .input-sm{padding:3px 6px;font-size:.78rem}
+  .input{padding:5px 8px;font-size:.82rem}
+
+  /* BUDGET INPUT in card */
+  .card-header .input#budgetVieInput{width:90px !important}
+  .card-header label{font-size:.78rem !important}
+
+  /* BADGES */
+  .badge{max-width:80px;font-size:.65rem;padding:1px 6px}
+
+  /* MODAL - full screen */
+  .modal{width:100%;max-width:100%;height:100%;border-radius:0;padding:20px;display:flex;flex-direction:column;justify-content:center}
+  .modal-overlay{align-items:flex-end}
+  .modal-overlay.open{align-items:center}
+  .modal-title{font-size:1rem}
+  .form-row input,.form-row select{font-size:1rem;padding:10px 10px}
+
+  /* PROJECTION TABLE */
+  .proj-table th,.proj-table td{padding:3px 4px;font-size:.68rem}
+  .proj-table th{font-size:.6rem}
+  .proj-table td input{width:56px;font-size:.68rem;padding:2px 4px}
+  .proj-table td input.input-xs{width:46px;font-size:.65rem;padding:1px 3px}
+  .sal-label{font-size:.55rem;width:14px}
+  .month-cell{min-width:52px;font-size:.68rem}
+  .sal-cell{gap:1px}
+  .sal-row{gap:2px}
+
+  /* COMPARISON TABLE */
+  #simComparison td,#simComparison th{padding:5px 6px;font-size:.75rem}
+
+  /* CONFIG SCREEN */
+  .config-box{padding:24px 20px}
+  .config-title{font-size:1.1rem}
+  .config-subtitle{font-size:.78rem}
+
+  /* SIM BUTTONS */
+  .tab-content#tab-simulation>div:first-child{gap:8px}
+  .tab-content#tab-simulation>div:first-child span:first-child{width:100%}
+}
+
+@media(max-width:400px){
+  .sc{min-width:100%;flex:1 1 100%}
+  .header-actions .btn{font-size:.72rem;padding:4px 8px}
+  .header-actions .btn-icon{padding:4px 8px}
+  .proj-table td input{width:44px;font-size:.62rem}
+  .proj-table td input.input-xs{width:38px}
+  .tab-btn{padding:8px 8px;font-size:.76rem}
 }
 </style>
 </head>
