@@ -227,6 +227,18 @@ body.dark .sim-badge{background:#312e81;color:#c7d2fe}
 </style>
 </head>
 <body>
+<!-- LOGIN SCREEN -->
+<div id="loginScreen" style="position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center">
+<div class="card" style="width:90%;max-width:380px;text-align:center;padding:40px">
+<h2 style="color:var(--primary);margin-bottom:8px;font-size:22px">🔐 Budget Manager</h2>
+<p style="color:var(--text2);font-size:13px;margin-bottom:24px">Accès protégé</p>
+<input type="email" id="loginEmail" placeholder="Email" autocomplete="email" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--text);margin-bottom:10px;font-size:14px;outline:none">
+<input type="password" id="loginPass" placeholder="Mot de passe" autocomplete="current-password" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--text);margin-bottom:12px;font-size:14px;outline:none">
+<button onclick="doLogin(event)" style="width:100%;padding:10px;border-radius:8px;border:none;background:var(--primary);color:#fff;font-size:15px;font-weight:600;cursor:pointer">Se connecter</button>
+<div id="loginError" style="color:var(--red);font-size:12px;margin-top:8px;display:none">❌ Email ou mot de passe incorrect</div>
+</div>
+</div>
+<div id="appWrapper" style="display:none">
 
 <!-- HEADER -->
 <div class="header">
@@ -1269,7 +1281,39 @@ async function init() {
   }
 }
 
-init();
+// ===== LOGIN =====
+var LOGIN_EH='c9cc7ca71492f1ed5c078fb49be08cff950db59331c8f616009188c6a977d4ea' // sha256('sajomtech@gmail.com')
+var LOGIN_PH='9be31275f6ba0d2ef57bd1d76477c7b942cac186aa6f20d2d7880818c772e5af' // sha256('252631Shim')
+
+async function sha256(m){var e=new TextEncoder().encode(m);var b=await crypto.subtle.digest('SHA-256',e);return Array.from(new Uint8Array(b)).map(function(x){return x.toString(16).padStart(2,'0')}).join('')}
+
+function doLogin(e){
+e.preventDefault()
+var email=document.getElementById('loginEmail').value.trim().toLowerCase()
+var pass=document.getElementById('loginPass').value
+if(!email||!pass)return
+Promise.all([sha256(email),sha256(pass)]).then(function(hashes){
+if(hashes[0]!==LOGIN_EH||hashes[1]!==LOGIN_PH){
+document.getElementById('loginError').style.display='block';return
+}
+sessionStorage.setItem('bm_logged','1')
+document.getElementById('loginScreen').style.display='none'
+document.getElementById('appWrapper').style.display='block'
+init()
+})
+}
+
+function checkLogin(){
+if(sessionStorage.getItem('bm_logged')==='1'){
+document.getElementById('loginScreen').style.display='none'
+document.getElementById('appWrapper').style.display='block'
+init()
+}
+}
+
+// Override init call — check login first
+checkLogin();
 </script>
+</div> <!-- end appWrapper -->
 </body>
 </html>
